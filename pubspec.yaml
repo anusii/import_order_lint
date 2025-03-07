@@ -1,4 +1,4 @@
-name: custom_lint_package
+name: import_order_lint
 description: "A new Flutter package project."
 version: 0.0.1
 homepage:

@@ -29,7 +29,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
 
-import 'package:custom_lint_package/src/custom_lint.dart';
+import 'package:import_order_lint/src/custom_lint.dart';
 
 /// A visitor that traverses the AST looking for print statements.
 ///

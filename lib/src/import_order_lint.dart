@@ -30,7 +30,7 @@ import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart' as custom_lint;
 
-import 'package:custom_lint_package/src/import_visitor.dart';
+import 'package:import_order_lint/src/import_visitor.dart';
 
 /// A custom lint rule that enforces consistent import ordering in Dart files.
 ///
