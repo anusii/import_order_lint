@@ -77,6 +77,7 @@ import 'import_visitor.dart';
 /// ```
 
 /// Finds the project root directory by looking for pubspec.yaml in parent directories.
+
 String _findProjectRoot(String startPath) {
   var current = Directory(startPath);
   while (current.path != current.parent.path) {
@@ -89,6 +90,7 @@ String _findProjectRoot(String startPath) {
 }
 
 /// Gets the package name from the project's pubspec.yaml file.
+
 String _getPackageNameFromPubspec(String projectPath) {
   final pubspecFile = File('$projectPath/pubspec.yaml');
   if (!pubspecFile.existsSync()) {
@@ -123,7 +125,8 @@ class ImportOrderLint extends custom_lint.DartLintRule {
     errorSeverity: analyzer.ErrorSeverity.INFO,
   );
 
-  /// Additional lint code for import group separation
+  /// Additional lint code for import group separation.
+  
   static final custom_lint.LintCode _separationCode = custom_lint.LintCode(
     name: 'import_group_separation',
     problemMessage:
@@ -142,23 +145,27 @@ class ImportOrderLint extends custom_lint.DartLintRule {
     ErrorReporter reporter,
     custom_lint.CustomLintContext context,
   ) {
-    // Get the project name from environment variable or pubspec.yaml
+    // Get the project name from environment variable or pubspec.yaml.
+
     final envProjectName = Platform.environment['DART_PROJECT_NAME'];
     final projectName = envProjectName ?? 
         _getPackageNameFromPubspec(_findProjectRoot(resolver.path));
 
     // Process the resolved unit result to analyze import statements.
+
     resolver.getResolvedUnitResult().then((ResolvedUnitResult result) {
       // Generate source code representation for analysis.
       result.unit.toSource();
 
       // Create and run the import visitor to check import ordering.
+
       final visitor = ImportVisitor(reporter, projectName: projectName);
       visitor.visitCompilationUnit(result.unit);
     }).catchError((error) {
       // Errors during analysis should be handled gracefully
       // In a production environment, consider logging these errors
       // print('[ERROR] Exception in getResolvedUnitResult(): $error');
+      
     });
   }
 }
