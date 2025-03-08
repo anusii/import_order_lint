@@ -25,12 +25,15 @@
 
 library;
 
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart' as custom_lint;
+import 'package:yaml/yaml.dart';
 
-import 'package:import_order_lint/src/import_visitor.dart';
+import 'import_visitor.dart';
 
 /// A custom lint rule that enforces consistent import ordering in Dart files.
 ///
@@ -59,10 +62,47 @@ import 'package:import_order_lint/src/import_visitor.dart';
 ///
 /// To use this lint rule, add it to your analysis_options.yaml file:
 /// ```yaml
-/// linter:
-///   rules:
-///     - ordered_imports
+/// analyzer:
+///   plugins:
+///     - custom_lint
+///   custom_lint:
+///     rules:
+///       - import_order_lint
 /// ```
+///
+/// By default, the plugin will use your package name from pubspec.yaml to identify project-specific imports.
+/// If you need to override this, you can set the DART_PROJECT_NAME environment variable:
+/// ```bash
+/// DART_PROJECT_NAME=my_project dart run custom_lint
+/// ```
+
+/// Finds the project root directory by looking for pubspec.yaml in parent directories.
+String _findProjectRoot(String startPath) {
+  var current = Directory(startPath);
+  while (current.path != current.parent.path) {
+    if (File('${current.path}/pubspec.yaml').existsSync()) {
+      return current.path;
+    }
+    current = current.parent;
+  }
+  return startPath;
+}
+
+/// Gets the package name from the project's pubspec.yaml file.
+String _getPackageNameFromPubspec(String projectPath) {
+  final pubspecFile = File('$projectPath/pubspec.yaml');
+  if (!pubspecFile.existsSync()) {
+    return '';
+  }
+
+  try {
+    final contents = pubspecFile.readAsStringSync();
+    final yaml = loadYaml(contents);
+    return yaml['name'] as String? ?? '';
+  } catch (e) {
+    return '';
+  }
+}
 
 class ImportOrderLint extends custom_lint.DartLintRule {
   /// Creates a new instance of [ImportOrderLint].
@@ -102,21 +142,22 @@ class ImportOrderLint extends custom_lint.DartLintRule {
     ErrorReporter reporter,
     custom_lint.CustomLintContext context,
   ) {
-    // Process the resolved unit result to analyze import statements.
+    // Get the project name from environment variable or pubspec.yaml
+    final envProjectName = Platform.environment['DART_PROJECT_NAME'];
+    final projectName = envProjectName ?? 
+        _getPackageNameFromPubspec(_findProjectRoot(resolver.path));
 
+    // Process the resolved unit result to analyze import statements.
     resolver.getResolvedUnitResult().then((ResolvedUnitResult result) {
       // Generate source code representation for analysis.
-
       result.unit.toSource();
 
       // Create and run the import visitor to check import ordering.
-
-      final visitor = ImportVisitor(reporter);
+      final visitor = ImportVisitor(reporter, projectName: projectName);
       visitor.visitCompilationUnit(result.unit);
     }).catchError((error) {
       // Errors during analysis should be handled gracefully
       // In a production environment, consider logging these errors
-
       // print('[ERROR] Exception in getResolvedUnitResult(): $error');
     });
   }

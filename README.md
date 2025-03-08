@@ -11,29 +11,78 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/to/develop-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+# Import Order Lint
+
+A custom lint plugin for enforcing consistent import ordering in Dart files.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Enforces consistent import ordering across your Dart/Flutter project
+- Groups imports into categories:
+  1. Dart SDK imports (e.g., 'dart:core', 'dart:async')
+  2. Flutter imports (packages starting with 'package:flutter/')
+  3. External package imports (other 'package:' imports)
+  4. Project imports (relative path imports)
+- Requires blank lines between different import groups
+- Sorts imports alphabetically within each group
 
-## Getting started
+## Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+1. Add the package to your `pubspec.yaml`:
+
+```yaml
+dev_dependencies:
+  custom_lint: ^0.6.10
+  import_order_lint: ^0.0.1
+```
+
+2. Create or update your `analysis_options.yaml`:
+
+```yaml
+analyzer:
+  plugins:
+    - custom_lint
+  custom_lint:
+    rules:
+      - import_order_lint
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+The lint rule will automatically analyze your Dart files and report any import ordering issues. You can run the linter using:
 
-```dart
-const like = 'sample';
+```bash
+dart run custom_lint
 ```
 
-## Additional information
+By default, the plugin will use your package name from `pubspec.yaml` to identify project-specific imports. If you need to override this, you can set the `DART_PROJECT_NAME` environment variable:
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```bash
+# On Unix-like systems (Linux, macOS)
+DART_PROJECT_NAME=my_project dart run custom_lint
+
+# On Windows PowerShell
+$env:DART_PROJECT_NAME="my_project"; dart run custom_lint
+```
+
+## Example
+
+Here's an example of properly ordered imports:
+
+```dart
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:http/http.dart';
+import 'package:path/path.dart';
+
+import '../models/user.dart';
+import './utils.dart';
+```
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.

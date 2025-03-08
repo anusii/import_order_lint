@@ -38,7 +38,7 @@ import 'package:custom_lint_builder/custom_lint_builder.dart' as custom_lint;
 /// 1. Dart SDK imports (dart:*)
 /// 2. Flutter imports (package:flutter/*)
 /// 3. External package imports (other package:*)
-/// 4. Project imports (package:healthpod/*)
+/// 4. Project imports (package:${projectName}/*)
 ///
 /// The visitor reports a single, comprehensive error message per file when imports
 /// are not properly ordered, including specific details about incorrect placements
@@ -55,8 +55,8 @@ import 'package:custom_lint_builder/custom_lint_builder.dart' as custom_lint;
 /// import 'package:http/http.dart';
 /// import 'package:path/path.dart';
 ///
-/// import 'package:healthpod/models/user.dart';
-/// import 'package:healthpod/utils/constants.dart';
+/// import 'package:${projectName}/models/user.dart';
+/// import 'package:${projectName}/utils/constants.dart';
 /// ```
 
 class ImportVisitor extends RecursiveAstVisitor<void> {
@@ -64,11 +64,16 @@ class ImportVisitor extends RecursiveAstVisitor<void> {
 
   final ErrorReporter reporter;
 
+  /// The name of the project being analyzed.
+
+  final String projectName;
+
   /// Creates a new instance of [ImportVisitor].
   ///
-  /// Requires an [ErrorReporter] to report lint violations.
+  /// Requires an [ErrorReporter] to report lint violations and a [projectName]
+  /// to identify project-specific imports.
 
-  ImportVisitor(this.reporter);
+  ImportVisitor(this.reporter, {required this.projectName});
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -290,7 +295,7 @@ class ImportVisitor extends RecursiveAstVisitor<void> {
         dartImports.add(import);
       } else if (import.startsWith("package:flutter/")) {
         flutterImports.add(import);
-      } else if (import.startsWith("package:healthpod/")) {
+      } else if (import.startsWith("package:$projectName/")) {
         projectImports.add(import);
       } else if (import.startsWith("package:")) {
         externalImports.add(import);
@@ -343,20 +348,23 @@ class ImportVisitor extends RecursiveAstVisitor<void> {
     return formattedImports.join("\n");
   }
 
-  /// Determines the category of an import based on its path.
+  /// Gets the category of an import based on its URI.
   ///
   /// Categories are:
   /// - "dart" for Dart SDK imports
-  /// - "flutter" for Flutter package imports
+  /// - "flutter" for Flutter imports
   /// - "project" for project-specific imports
   /// - "external" for all other package imports
-  /// - "relative" for relative path imports
-
-  String _getImportCategory(String importPath) {
-    if (importPath.startsWith("dart:")) return "dart";
-    if (importPath.startsWith("package:flutter/")) return "flutter";
-    if (importPath.startsWith("package:healthpod/")) return "project";
-    if (importPath.startsWith("package:")) return "external";
-    return "relative";
+  String _getImportCategory(String importUri) {
+    if (importUri.startsWith('dart:')) {
+      return 'dart';
+    } else if (importUri.startsWith('package:flutter/')) {
+      return 'flutter';
+    } else if (importUri.startsWith('package:$projectName/')) {
+      return 'project';
+    } else if (importUri.startsWith('package:')) {
+      return 'external';
+    }
+    return 'relative';
   }
 }
