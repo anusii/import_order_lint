@@ -28,15 +28,21 @@ A custom lint plugin for enforcing consistent import ordering in Dart files.
 
 ## Installation
 
-1. Add the package to your `pubspec.yaml`:
+> **Note**: This package is planned to be published to pub.dev but is not yet available. For now, you can use it directly from GitHub.
+
+Add the package to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
   custom_lint: ^0.6.10
-  import_order_lint: ^0.0.1
+  import_order_lint:
+    git:
+      url: https://github.com/yourusername/import_order_lint.git
+      ref: main  # or specific commit/tag if needed
 ```
 
-2. Create or update your `analysis_options.yaml`:
+### Configuration
+Create or update your `analysis_options.yaml`:
 
 ```yaml
 analyzer:
