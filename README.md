@@ -37,7 +37,7 @@ dev_dependencies:
   custom_lint: ^0.6.10
   import_order_lint:
     git:
-      url: https://github.com/yourusername/import_order_lint.git
+      url: https://github.com/anusii/import_order_lint.git
       ref: main  # or specific commit/tag if needed
 ```
 
