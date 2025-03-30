@@ -1,7 +1,7 @@
 name: import_order_lint
 description: "A custom lint plugin for enforcing import order in Dart files."
 version: 0.0.1
-homepage:
+repository: https://github.com/anusii/import-order-lint
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
