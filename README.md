@@ -1,19 +1,14 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+[![Flutter](https://img.shields.io/badge/Made%20with-Flutter-blue.svg)](https://flutter.dev/)
+[![Pub Package](https://img.shields.io/pub/v/import_order_lint)](https://pub.dev/packages/import_order_lint)
+[![GitHub Issues](https://img.shields.io/github/issues/anusii/import_order_lint)](https://github.com/anusii/import_order_lint/issues)
+[![GitHub License](https://img.shields.io/github/license/anusii/import_order_lint)](https://raw.githubusercontent.com/anusii/import_order_lint/main/LICENSE)
 
 # Import Order Lint
 
 A custom lint plugin for enforcing consistent import ordering in Dart files.
+
+Published through the Flutter repository as
+https://pub.dev/packages/import_order_lint.
 
 ## Features
 
@@ -28,20 +23,16 @@ A custom lint plugin for enforcing consistent import ordering in Dart files.
 
 ## Installation
 
-> **Note**: This package is planned to be published to pub.dev but is not yet available. For now, you can use it directly from GitHub.
-
 Add the package to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
   custom_lint: ^0.6.10
-  import_order_lint:
-    git:
-      url: https://github.com/anusii/import_order_lint.git
-      ref: main  # or specific commit/tag if needed
+  import_order_lint: ^0.0.3
 ```
 
 ### Configuration
+
 Create or update your `analysis_options.yaml`:
 
 ```yaml
@@ -55,13 +46,16 @@ analyzer:
 
 ## Usage
 
-The lint rule will automatically analyze your Dart files and report any import ordering issues. You can run the linter using:
+The lint rule will automatically analyze your Dart files and report
+any import ordering issues. You can run the linter using:
 
 ```bash
 dart run custom_lint
 ```
 
-By default, the plugin will use your package name from `pubspec.yaml` to identify project-specific imports. If you need to override this, you can set the `DART_PROJECT_NAME` environment variable:
+By default, the plugin will use your package name from `pubspec.yaml`
+to identify project-specific imports. If you need to override this,
+you can set the `DART_PROJECT_NAME` environment variable:
 
 ```bash
 # On Unix-like systems (Linux, macOS)
@@ -85,10 +79,11 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 
-import '../models/user.dart';
-import './utils.dart';
+import 'package:myapp/models/user.dart';
+import 'package:myapp/utils.dart';
 ```
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file
+for details.
