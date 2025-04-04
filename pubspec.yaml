@@ -1,18 +1,10 @@
 name: import_order_lint
 description: "A custom lint plugin for enforcing import order in Dart files."
-version: 0.0.2
+version: 0.0.3
 repository: https://github.com/anusii/import-order-lint
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
 
 dependencies:
-  analyzer: ^7.3.0
-  analyzer_plugin: ^0.13.0
   custom_lint_builder: ^0.7.0
-  yaml: ^3.1.2
-
-dev_dependencies:
-  build_runner: ^2.4.8
-  # Ensures Dart's built-in testing framework is included
-  test: ^1.21.0
