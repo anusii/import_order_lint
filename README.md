@@ -53,9 +53,13 @@ any import ordering issues. You can run the linter using:
 dart run custom_lint
 ```
 
-By default, the plugin will use your package name from `pubspec.yaml`
-to identify project-specific imports. If you need to override this,
-you can set the `DART_PROJECT_NAME` environment variable:
+### Project Name Identification
+
+For correct import categorization, the tool needs to know your project name. By default, it tries to determine this from your `pubspec.yaml` file, but this may not always work correctly, especially in complex repository structures.
+
+You have two options to ensure correct project name identification:
+
+1. For linting with `custom_lint`, set the `DART_PROJECT_NAME` environment variable:
 
 ```bash
 # On Unix-like systems (Linux, macOS)
@@ -63,6 +67,64 @@ DART_PROJECT_NAME=my_project dart run custom_lint
 
 # On Windows PowerShell
 $env:DART_PROJECT_NAME="my_project"; dart run custom_lint
+```
+
+2. For the import fixer tool, use the `--project-name` parameter (recommended):
+
+```bash
+dart run import_order_lint:fix_imports --project-name=my_project -r lib
+```
+
+This ensures that imports starting with `package:my_project/` are correctly identified as project imports and separated from external package imports.
+
+## Automatic Import Fixer
+
+This package also includes a command-line tool to automatically fix import ordering in your files:
+
+```bash
+# If installed as a dependency
+dart run import_order_lint:fix_imports [options] <file_or_directory_paths>
+
+# If activated globally
+dart pub global activate import_order_lint
+fix_imports [options] <file_or_directory_paths>
+```
+
+### Options
+
+- `-r, --recursive`: Recursively search for Dart files in directories
+- `-v, --verbose`: Show verbose output
+- `-h, --help`: Print usage information
+- `--project-name=<name>`: Explicitly set the project name for correct import categorization
+
+### Examples
+
+```bash
+# Fix a single file
+dart run import_order_lint:fix_imports lib/main.dart
+
+# Fix all Dart files in a directory recursively
+dart run import_order_lint:fix_imports -r lib
+
+# Fix multiple files with verbose output
+dart run import_order_lint:fix_imports -v lib/main.dart lib/widgets/app.dart
+
+# Fix imports with explicit project name (recommended)
+dart run import_order_lint:fix_imports --project-name=myapp -r lib
+```
+
+### Integration with CI/CD
+
+You can integrate the import fixer into your CI/CD pipeline to ensure consistent import ordering:
+
+```yaml
+# Example GitHub Actions workflow step
+- name: Fix import ordering
+  run: dart run import_order_lint:fix_imports --project-name=myapp -r lib
+
+# Check if any files were changed (will fail if imports were fixed)
+- name: Check for changes
+  run: git diff --exit-code
 ```
 
 ## Example

@@ -355,7 +355,7 @@ class ImportVisitor extends RecursiveAstVisitor<void> {
   /// - "flutter" for Flutter imports
   /// - "project" for project-specific imports
   /// - "external" for all other package imports
-  
+
   String _getImportCategory(String importUri) {
     if (importUri.startsWith('dart:')) {
       return 'dart';
