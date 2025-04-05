@@ -29,7 +29,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
-// Define categories for import sorting
+// Define categories for import sorting.
+
 enum ImportCategory {
   dart,
   flutter,
@@ -40,10 +41,16 @@ enum ImportCategory {
 
 void main(List<String> args) {
   final parser = ArgParser()
-    ..addFlag('help', abbr: 'h', negatable: false, help: 'Print usage information')
-    ..addFlag('recursive', abbr: 'r', negatable: false, help: 'Recursively search for Dart files in directories')
-    ..addFlag('verbose', abbr: 'v', negatable: false, help: 'Show verbose output')
-    ..addOption('project-name', help: 'Explicitly set the project name for import categorization');
+    ..addFlag('help',
+        abbr: 'h', negatable: false, help: 'Print usage information')
+    ..addFlag('recursive',
+        abbr: 'r',
+        negatable: false,
+        help: 'Recursively search for Dart files in directories')
+    ..addFlag('verbose',
+        abbr: 'v', negatable: false, help: 'Show verbose output')
+    ..addOption('project-name',
+        help: 'Explicitly set the project name for import categorization');
 
   try {
     final argResults = parser.parse(args);
@@ -67,17 +74,20 @@ void main(List<String> args) {
     final processedFiles = <String>[];
     final errors = <String>[];
 
-    // If an explicit project name is provided, use it
-    final projectName = explicitProjectName != null && explicitProjectName.isNotEmpty
-        ? explicitProjectName
-        : null;
+    // If an explicit project name is provided, use it.
+
+    final projectName =
+        explicitProjectName != null && explicitProjectName.isNotEmpty
+            ? explicitProjectName
+            : null;
 
     for (final filePath in filePaths) {
       final fileOrDir = FileSystemEntity.typeSync(filePath);
-      
+
       if (fileOrDir == FileSystemEntityType.file) {
         if (filePath.endsWith('.dart')) {
-          final result = _processFile(filePath, verbose: verbose, explicitProjectName: projectName);
+          final result = _processFile(filePath,
+              verbose: verbose, explicitProjectName: projectName);
           if (result) {
             processedFiles.add(filePath);
           } else {
@@ -87,7 +97,10 @@ void main(List<String> args) {
           print('Skipping non-Dart file: $filePath');
         }
       } else if (fileOrDir == FileSystemEntityType.directory) {
-        final dirResults = _processDirectory(filePath, recursive: recursive, verbose: verbose, explicitProjectName: projectName);
+        final dirResults = _processDirectory(filePath,
+            recursive: recursive,
+            verbose: verbose,
+            explicitProjectName: projectName);
         processedFiles.addAll(dirResults.processed);
         errors.addAll(dirResults.errors);
       } else {
@@ -96,9 +109,10 @@ void main(List<String> args) {
     }
 
     if (processedFiles.isNotEmpty) {
-      print('\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
+      print(
+          '\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
     }
-    
+
     if (errors.isNotEmpty) {
       print('\nFailed to fix import ordering in ${errors.length} file(s).');
       exit(1);
@@ -142,14 +156,15 @@ Examples:
 }) {
   final processed = <String>[];
   final errors = <String>[];
-  
+
   try {
     final dir = Directory(dirPath);
     final entities = dir.listSync(recursive: recursive);
-    
+
     for (final entity in entities) {
       if (entity is File && entity.path.endsWith('.dart')) {
-        final result = _processFile(entity.path, verbose: verbose, explicitProjectName: explicitProjectName);
+        final result = _processFile(entity.path,
+            verbose: verbose, explicitProjectName: explicitProjectName);
         if (result) {
           processed.add(entity.path);
         } else {
@@ -160,18 +175,19 @@ Examples:
   } catch (e) {
     print('Error processing directory $dirPath: $e');
   }
-  
+
   return (processed: processed, errors: errors);
 }
 
-bool _processFile(String filePath, {required bool verbose, String? explicitProjectName}) {
+bool _processFile(String filePath,
+    {required bool verbose, String? explicitProjectName}) {
   try {
     if (verbose) {
       print('Processing: $filePath');
     }
-    
+
     final file = File(filePath);
-    
+
     if (!file.existsSync()) {
       if (verbose) {
         print('File not found: $filePath');
@@ -181,8 +197,9 @@ bool _processFile(String filePath, {required bool verbose, String? explicitProje
 
     final content = file.readAsStringSync();
     final lines = content.split('\n');
-    
-    // Find import lines
+
+    // Find import lines.
+
     final importLines = <String>[];
     final importIndices = <int>[];
     for (int i = 0; i < lines.length; i++) {
@@ -192,51 +209,61 @@ bool _processFile(String filePath, {required bool verbose, String? explicitProje
         importIndices.add(i);
       }
     }
-    
+
     if (importLines.isEmpty) {
       if (verbose) {
         print('No imports found in $filePath');
       }
-      return true; // Not an error, just nothing to do
+      // Not an error, just nothing to do.
+
+      return true;
     }
-    
-    // Get project name from pubspec.yaml (relative to the file being processed)
+
+    // Get project name from pubspec.yaml (relative to the file being processed).
+
     final projectName = explicitProjectName ?? _getProjectName(filePath);
-    
-    // Sort imports
+
+    // Sort imports.
+
     final sortedImports = _sortImports(importLines, projectName);
-    
-    // Check if imports are already sorted correctly
+
+    // Check if imports are already sorted correctly.
+
     bool alreadySorted = true;
     for (int i = 0; i < importLines.length; i++) {
-      // Ignore blank lines when comparing
-      if (importLines[i].trim().isNotEmpty && 
+      // Ignore blank lines when comparing.
+
+      if (importLines[i].trim().isNotEmpty &&
           (i >= sortedImports.length || importLines[i] != sortedImports[i])) {
         alreadySorted = false;
         break;
       }
     }
-    
+
     if (alreadySorted) {
       if (verbose) {
         print('Imports already correctly ordered in $filePath');
       }
       return true;
     }
-    
-    // Replace imports in the file
+
+    // Replace imports in the file.
+
     final firstImportIndex = importIndices.first;
     final lastImportIndex = importIndices.last;
-    
-    // Remove all existing imports
+
+    // Remove all existing imports.
+
     lines.removeRange(firstImportIndex, lastImportIndex + 1);
-    
-    // Insert sorted imports
+
+    // Insert sorted imports.
+
     lines.insertAll(firstImportIndex, sortedImports);
-    
-    // Write back to file
+
+    // Write back to file.
+
     file.writeAsStringSync(lines.join('\n'));
-    
+
     if (verbose) {
       print('Successfully fixed import ordering in $filePath');
     }
@@ -249,22 +276,23 @@ bool _processFile(String filePath, {required bool verbose, String? explicitProje
 
 String _getProjectName(String filePath) {
   try {
-    // Try to find pubspec.yaml in directory or parent directories
+    // Try to find pubspec.yaml in directory or parent directories.
+
     Directory current = Directory(path.dirname(filePath));
-    
+
     while (current.path != current.parent.path) {
       final pubspecPath = path.join(current.path, 'pubspec.yaml');
       final pubspecFile = File(pubspecPath);
-      
+
       if (pubspecFile.existsSync()) {
         final content = pubspecFile.readAsStringSync();
         final nameMatch = RegExp(r'name:\s*([^\s]+)').firstMatch(content);
         return nameMatch?.group(1) ?? '';
       }
-      
+
       current = current.parent;
     }
-    
+
     return '';
   } catch (e) {
     print('Error getting project name: $e');
@@ -273,13 +301,14 @@ String _getProjectName(String filePath) {
 }
 
 List<String> _sortImports(List<String> imports, String projectName) {
-  // Categorize imports
+  // Categorise imports.
+
   final dartImports = <String>[];
   final flutterImports = <String>[];
   final externalImports = <String>[];
   final projectImports = <String>[];
   final relativeImports = <String>[];
-  
+
   for (final import in imports) {
     final category = _getImportCategory(import, projectName);
     switch (category) {
@@ -300,61 +329,67 @@ List<String> _sortImports(List<String> imports, String projectName) {
         break;
     }
   }
-  
-  // Sort each category
+
+  // Sort each category.
+
   dartImports.sort();
   flutterImports.sort();
   externalImports.sort();
   projectImports.sort();
   relativeImports.sort();
-  
-  // Combine with blank lines between categories
+
+  // Combine with blank lines between categories.
+
   final result = <String>[];
-  
+
   if (dartImports.isNotEmpty) {
     result.addAll(dartImports);
-    if (flutterImports.isNotEmpty || externalImports.isNotEmpty || 
-        projectImports.isNotEmpty || relativeImports.isNotEmpty) {
-      result.add('');
-    }
-  }
-  
-  if (flutterImports.isNotEmpty) {
-    result.addAll(flutterImports);
-    if (externalImports.isNotEmpty || projectImports.isNotEmpty || 
+    if (flutterImports.isNotEmpty ||
+        externalImports.isNotEmpty ||
+        projectImports.isNotEmpty ||
         relativeImports.isNotEmpty) {
       result.add('');
     }
   }
-  
+
+  if (flutterImports.isNotEmpty) {
+    result.addAll(flutterImports);
+    if (externalImports.isNotEmpty ||
+        projectImports.isNotEmpty ||
+        relativeImports.isNotEmpty) {
+      result.add('');
+    }
+  }
+
   if (externalImports.isNotEmpty) {
     result.addAll(externalImports);
     if (projectImports.isNotEmpty || relativeImports.isNotEmpty) {
       result.add('');
     }
   }
-  
+
   if (projectImports.isNotEmpty) {
     result.addAll(projectImports);
     if (relativeImports.isNotEmpty) {
       result.add('');
     }
   }
-  
+
   if (relativeImports.isNotEmpty) {
     result.addAll(relativeImports);
   }
-  
+
   return result;
 }
 
 ImportCategory _getImportCategory(String importLine, String projectName) {
-  // Extract package path
+  // Extract package path.
+
   final singleQuoteMatch = importLine.indexOf("import '");
   final doubleQuoteMatch = importLine.indexOf('import "');
-  
+
   String importPath = '';
-  
+
   if (singleQuoteMatch >= 0) {
     final startIndex = importLine.indexOf("'") + 1;
     final endIndex = importLine.indexOf("'", startIndex);
@@ -368,23 +403,26 @@ ImportCategory _getImportCategory(String importLine, String projectName) {
       importPath = importLine.substring(startIndex, endIndex);
     }
   } else {
-    // Extract package path using split (fallback)
+    // Extract package path using split (fallback).
+
     final parts = importLine.trim().split(' ');
     if (parts.length >= 2) {
-      String path = parts[1].replaceAll("'", "").replaceAll('"', '').replaceAll(';', '');
+      String path =
+          parts[1].replaceAll("'", "").replaceAll('"', '').replaceAll(';', '');
       importPath = path;
     }
   }
-  
+
   if (importPath.startsWith('dart:')) {
     return ImportCategory.dart;
   } else if (importPath.startsWith('package:flutter/')) {
     return ImportCategory.flutter;
-  } else if (projectName.isNotEmpty && importPath.startsWith('package:$projectName/')) {
+  } else if (projectName.isNotEmpty &&
+      importPath.startsWith('package:$projectName/')) {
     return ImportCategory.project;
   } else if (importPath.startsWith('package:')) {
     return ImportCategory.external;
   } else {
     return ImportCategory.relative;
   }
-} 
+}

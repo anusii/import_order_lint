@@ -128,7 +128,7 @@ class ImportOrderLint extends custom_lint.DartLintRule {
   );
 
   /// Additional lint code for import group separation.
-  
+
   static final custom_lint.LintCode _separationCode = custom_lint.LintCode(
     name: 'import_group_separation',
     problemMessage:
@@ -150,13 +150,14 @@ class ImportOrderLint extends custom_lint.DartLintRule {
     // Get the project name from environment variable or pubspec.yaml.
 
     final envProjectName = Platform.environment['DART_PROJECT_NAME'];
-    final projectName = envProjectName ?? 
+    final projectName = envProjectName ??
         _getPackageNameFromPubspec(_findProjectRoot(resolver.path));
 
     // Process the resolved unit result to analyze import statements.
 
     resolver.getResolvedUnitResult().then((ResolvedUnitResult result) {
       // Generate source code representation for analysis.
+
       result.unit.toSource();
 
       // Create and run the import visitor to check import ordering.
@@ -167,7 +168,6 @@ class ImportOrderLint extends custom_lint.DartLintRule {
       // Errors during analysis should be handled gracefully
       // In a production environment, consider logging these errors
       // print('[ERROR] Exception in getResolvedUnitResult(): $error');
-      
     });
   }
 
@@ -175,6 +175,7 @@ class ImportOrderLint extends custom_lint.DartLintRule {
   ///
   /// Fixes will show-up in the IDE when the cursor is above the warning. And it
   /// should contain a message explaining how the warning will be fixed.
+
   @override
   List<custom_lint.Fix> getFixes() => [
         _ReorderImportsFix(),
@@ -183,8 +184,11 @@ class ImportOrderLint extends custom_lint.DartLintRule {
 }
 
 /// Helper method to sort import information objects.
-List<_ImportInfo> _sortImportsInfo(List<_ImportInfo> imports, String projectName) {
-  // Categorize imports.
+
+List<_ImportInfo> _sortImportsInfo(
+    List<_ImportInfo> imports, String projectName) {
+  // Categorise imports.
+
   List<_ImportInfo> dartImports = [];
   List<_ImportInfo> flutterImports = [];
   List<_ImportInfo> externalImports = [];
@@ -202,12 +206,14 @@ List<_ImportInfo> _sortImportsInfo(List<_ImportInfo> imports, String projectName
     } else if (uriStr.startsWith("package:")) {
       externalImports.add(import);
     } else {
-      // This captures relative imports that don't start with "package:"
+      // This captures relative imports that don't start with "package:".
+
       relativeImports.add(import);
     }
   }
 
   // Sort each category alphabetically by URI.
+
   dartImports.sort((a, b) => a.uriString.compareTo(b.uriString));
   flutterImports.sort((a, b) => a.uriString.compareTo(b.uriString));
   externalImports.sort((a, b) => a.uriString.compareTo(b.uriString));
@@ -215,6 +221,7 @@ List<_ImportInfo> _sortImportsInfo(List<_ImportInfo> imports, String projectName
   relativeImports.sort((a, b) => a.uriString.compareTo(b.uriString));
 
   // Combine sorted categories in the correct order.
+
   return [
     ...dartImports,
     ...flutterImports,
@@ -225,6 +232,7 @@ List<_ImportInfo> _sortImportsInfo(List<_ImportInfo> imports, String projectName
 }
 
 /// Helper method to get import category from URI string.
+
 String _getImportCategory(String importUri, String projectName) {
   if (importUri.startsWith('dart:')) {
     return 'dart';
@@ -239,6 +247,7 @@ String _getImportCategory(String importUri, String projectName) {
 }
 
 /// Helper class to hold import information.
+
 class _ImportInfo {
   final String uriString;
   final ImportDirective directive;
@@ -261,6 +270,7 @@ class _ImportInfo {
 ///
 /// This fix reorganizes all imports in the file according to the proper categories
 /// and adds blank line separators between different import categories.
+
 class _ReorderImportsFix extends custom_lint.DartFix {
   @override
   void run(
@@ -271,23 +281,25 @@ class _ReorderImportsFix extends custom_lint.DartFix {
     List<analyzer.AnalysisError> others,
   ) {
     final envProjectName = Platform.environment['DART_PROJECT_NAME'];
-    final projectName = envProjectName ?? 
+    final projectName = envProjectName ??
         _getPackageNameFromPubspec(_findProjectRoot(resolver.path));
 
     resolver.getResolvedUnitResult().then((ResolvedUnitResult result) {
       final unit = result.unit;
       final imports = unit.directives.whereType<ImportDirective>().toList();
-      
+
       if (imports.isEmpty) return;
-      
-      // Create a change builder for the fix
+
+      // Create a change builder for the fix.
+
       final changeBuilder = reporter.createChangeBuilder(
         message: 'Reorder imports',
         priority: 10,
       );
-      
+
       changeBuilder.addDartFileEdit((builder) {
-        // Get import details
+        // Get import details.
+
         final allImports = imports.map((imp) {
           final uriStr = imp.uri.stringValue ?? '';
           final prefix = imp.prefix?.name;
@@ -295,7 +307,7 @@ class _ReorderImportsFix extends custom_lint.DartFix {
           final comment = imp.documentationComment?.toString() ?? '';
           final isShow = combinators.any((c) => c is ShowCombinator);
           final isHide = combinators.any((c) => c is HideCombinator);
-          
+
           return _ImportInfo(
             uriString: uriStr,
             directive: imp,
@@ -305,16 +317,19 @@ class _ReorderImportsFix extends custom_lint.DartFix {
             comment: comment,
           );
         }).toList();
-        
-        // Sort imports
+
+        // Sort imports.
+
         final sortedInfos = _sortImportsInfo(allImports, projectName);
-        
+
         // If the first import is not at the start of the file,
-        // we need to be careful about leading comments
+        // we need to be careful about leading comments.
+
         final firstImport = imports.first;
         final lastImport = imports.last;
-        
-        // Replace the entire import section with properly formatted imports
+
+        // Replace the entire import section with properly formatted imports.
+
         builder.addReplacement(
           SourceRange(
             firstImport.offset,
@@ -322,34 +337,41 @@ class _ReorderImportsFix extends custom_lint.DartFix {
           ),
           (builder) {
             String? lastCategory;
-            
+
             for (int i = 0; i < sortedInfos.length; i++) {
               final importInfo = sortedInfos[i];
-              final category = _getImportCategory(importInfo.uriString, projectName);
-              
-              // Add blank line between different categories
+              final category =
+                  _getImportCategory(importInfo.uriString, projectName);
+
+              // Add blank line between different categories.
+
               if (lastCategory != null && lastCategory != category) {
                 builder.writeln();
               }
-              
-              // Write the import statement
+
+              // Write the import statement.
+
               builder.write('import \'${importInfo.uriString}\'');
-              
-              // Add prefix if present
+
+              // Add prefix if present.
+
               if (importInfo.prefix != null) {
                 builder.write(' as ${importInfo.prefix}');
               }
-              
-              // Add combinators (show/hide) if present
+
+              // Add combinators (show/hide) if present.
+
               if (importInfo.hasShow || importInfo.hasHide) {
                 final originalDirective = importInfo.directive.toSource();
-                final uriEnd = originalDirective.indexOf("'", originalDirective.indexOf("'") + 1) + 1;
+                final uriEnd = originalDirective.indexOf(
+                        "'", originalDirective.indexOf("'") + 1) +
+                    1;
                 final combinator = originalDirective.substring(uriEnd);
                 builder.write(combinator);
               } else {
                 builder.write(';');
               }
-              
+
               builder.writeln();
               lastCategory = category;
             }
@@ -364,6 +386,7 @@ class _ReorderImportsFix extends custom_lint.DartFix {
 ///
 /// This fix reorganizes all imports in the file according to the proper categories
 /// and adds blank line separators between different import categories.
+
 class _FixImportSeparationFix extends custom_lint.DartFix {
   @override
   void run(
@@ -374,25 +397,28 @@ class _FixImportSeparationFix extends custom_lint.DartFix {
     List<analyzer.AnalysisError> others,
   ) {
     // Reuse the same implementation as _ReorderImportsFix since both fixes
-    // effectively apply the same solution - reorganizing imports with proper spacing
+    // effectively apply the same solution - reorganizing imports with proper spacing.
+
     final envProjectName = Platform.environment['DART_PROJECT_NAME'];
-    final projectName = envProjectName ?? 
+    final projectName = envProjectName ??
         _getPackageNameFromPubspec(_findProjectRoot(resolver.path));
 
     resolver.getResolvedUnitResult().then((ResolvedUnitResult result) {
       final unit = result.unit;
       final imports = unit.directives.whereType<ImportDirective>().toList();
-      
+
       if (imports.isEmpty) return;
-      
-      // Create a change builder for the fix
+
+      // Create a change builder for the fix.
+
       final changeBuilder = reporter.createChangeBuilder(
         message: 'Add proper spacing between import groups',
         priority: 10,
       );
-      
+
       changeBuilder.addDartFileEdit((builder) {
-        // Get import details
+        // Get import details.
+
         final allImports = imports.map((imp) {
           final uriStr = imp.uri.stringValue ?? '';
           final prefix = imp.prefix?.name;
@@ -400,7 +426,7 @@ class _FixImportSeparationFix extends custom_lint.DartFix {
           final comment = imp.documentationComment?.toString() ?? '';
           final isShow = combinators.any((c) => c is ShowCombinator);
           final isHide = combinators.any((c) => c is HideCombinator);
-          
+
           return _ImportInfo(
             uriString: uriStr,
             directive: imp,
@@ -410,16 +436,19 @@ class _FixImportSeparationFix extends custom_lint.DartFix {
             comment: comment,
           );
         }).toList();
-        
-        // Sort imports
+
+        // Sort imports.
+
         final sortedInfos = _sortImportsInfo(allImports, projectName);
-        
+
         // If the first import is not at the start of the file,
-        // we need to be careful about leading comments
+        // we need to be careful about leading comments.
+
         final firstImport = imports.first;
         final lastImport = imports.last;
-        
-        // Replace the entire import section with properly formatted imports
+
+        // Replace the entire import section with properly formatted imports.
+
         builder.addReplacement(
           SourceRange(
             firstImport.offset,
@@ -427,34 +456,41 @@ class _FixImportSeparationFix extends custom_lint.DartFix {
           ),
           (builder) {
             String? lastCategory;
-            
+
             for (int i = 0; i < sortedInfos.length; i++) {
               final importInfo = sortedInfos[i];
-              final category = _getImportCategory(importInfo.uriString, projectName);
-              
-              // Add blank line between different categories
+              final category =
+                  _getImportCategory(importInfo.uriString, projectName);
+
+              // Add blank line between different categories.
+
               if (lastCategory != null && lastCategory != category) {
                 builder.writeln();
               }
-              
-              // Write the import statement
+
+              // Write the import statement.
+
               builder.write('import \'${importInfo.uriString}\'');
-              
-              // Add prefix if present
+
+              // Add prefix if present.
+
               if (importInfo.prefix != null) {
                 builder.write(' as ${importInfo.prefix}');
               }
-              
-              // Add combinators (show/hide) if present
+
+              // Add combinators (show/hide) if present.
+
               if (importInfo.hasShow || importInfo.hasHide) {
                 final originalDirective = importInfo.directive.toSource();
-                final uriEnd = originalDirective.indexOf("'", originalDirective.indexOf("'") + 1) + 1;
+                final uriEnd = originalDirective.indexOf(
+                        "'", originalDirective.indexOf("'") + 1) +
+                    1;
                 final combinator = originalDirective.substring(uriEnd);
                 builder.write(combinator);
               } else {
                 builder.write(';');
               }
-              
+
               builder.writeln();
               lastCategory = category;
             }
