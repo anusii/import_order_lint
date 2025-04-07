@@ -6,10 +6,10 @@
 # Import Order Lint
 
 A custom lint plugin for enforcing consistent import ordering in Dart
-files as documented in https://survivor.togaware.com/gnulinux/flutter-style-imports.html
+files as documented in the [Flutter Style Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
 
-Published through the Flutter repository as
-https://pub.dev/packages/import_order_lint
+The package is published on the Flutter repository at
+[pub.dev](https://pub.dev/packages/import_order_lint).
 
 ## Features
 
