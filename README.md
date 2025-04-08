@@ -46,7 +46,7 @@ custom_lint:
     - import_order_lint
   options:
     import_order_lint:
-      project_name: my_project
+      project_name: myapp
 ```
 
 ## Usage
