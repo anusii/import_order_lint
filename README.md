@@ -40,9 +40,13 @@ Create or update your `analysis_options.yaml`:
 analyzer:
   plugins:
     - custom_lint
-  custom_lint:
-    rules:
-      - import_order_lint
+
+custom_lint:
+  rules:
+    - import_order_lint
+  options:
+    import_order_lint:
+      project_name: my_project
 ```
 
 ## Usage
