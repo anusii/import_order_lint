@@ -28,7 +28,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  custom_lint: ^0.6.10
+  custom_lint: ^0.7.3
   import_order_lint: ^0.1.1
 ```
 
