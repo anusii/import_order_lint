@@ -362,12 +362,8 @@ class _ReorderImportsFix extends custom_lint.DartFix {
               // Add combinators (show/hide) if present.
 
               if (importInfo.hasShow || importInfo.hasHide) {
-                final originalDirective = importInfo.directive.toSource();
-                final uriEnd = originalDirective.indexOf(
-                        "'", originalDirective.indexOf("'") + 1) +
-                    1;
-                final combinator = originalDirective.substring(uriEnd);
-                builder.write(combinator);
+                builder.write(importInfo.directive.toSource().substring(
+                    'import '.length)); // Skip the 'import ' prefix since we already wrote it
               } else {
                 builder.write(';');
               }
@@ -481,12 +477,8 @@ class _FixImportSeparationFix extends custom_lint.DartFix {
               // Add combinators (show/hide) if present.
 
               if (importInfo.hasShow || importInfo.hasHide) {
-                final originalDirective = importInfo.directive.toSource();
-                final uriEnd = originalDirective.indexOf(
-                        "'", originalDirective.indexOf("'") + 1) +
-                    1;
-                final combinator = originalDirective.substring(uriEnd);
-                builder.write(combinator);
+                builder.write(importInfo.directive.toSource().substring(
+                    'import '.length)); // Skip the 'import ' prefix since we already wrote it
               } else {
                 builder.write(';');
               }
