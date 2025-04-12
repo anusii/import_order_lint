@@ -28,9 +28,9 @@
 library;
 
 class Helpers {
-  /// Format a string. 
-  
+  /// Format a string.
+
   static String formatString(String input) {
     return input.toUpperCase();
   }
-} 
+}

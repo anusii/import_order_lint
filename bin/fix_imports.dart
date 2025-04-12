@@ -207,7 +207,7 @@ bool _processFile(String filePath,
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
+
       if (line.startsWith('import ')) {
         // Start of a new import.
 
@@ -219,10 +219,10 @@ bool _processFile(String filePath,
         }
         currentImport = lines[i];
         startIndex = i;
-      } else if (currentImport != null && 
-                 (line.contains(';') || 
-                  line.contains('show') || 
-                  line.contains('hide'))) {
+      } else if (currentImport != null &&
+          (line.contains(';') ||
+              line.contains('show') ||
+              line.contains('hide'))) {
         // Continue building the import if it's part of a multi-line import.
 
         currentImport += '\n' + lines[i];
@@ -238,7 +238,9 @@ bool _processFile(String filePath,
         // Continue building the import if it's part of a multi-line import.
 
         currentImport += '\n' + lines[i];
-      } else if (currentImport == null && line.isNotEmpty && !line.startsWith('//')) {
+      } else if (currentImport == null &&
+          line.isNotEmpty &&
+          !line.startsWith('//')) {
         // If we're not in an import and find a non-empty, non-comment line,
         // we've passed the import section.
 

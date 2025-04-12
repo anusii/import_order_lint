@@ -3,7 +3,7 @@
 /// TEST CASE 1: Simple multi-line show clause.
 
 // import 'package:flutter/widgets.dart'
-//     show 
+//     show
 //       Container,
 //       Row,
 //       Column;
@@ -91,4 +91,4 @@
 //   void testMethod() {
 //     print('This is a test method');
 //   }
-// } 
+// }

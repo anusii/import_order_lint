@@ -1,4 +1,3 @@
-
 // A widget for the example project.
 ///
 // Time-stamp: <Thursday 2025-01-30 08:36:00 +1100 Graham Williams>
@@ -32,11 +31,11 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   /// Create a new MyWidget.
-  
+
   const MyWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Placeholder();
   }
-} 
+}
