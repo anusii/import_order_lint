@@ -24,6 +24,8 @@
 ///
 /// Authors: Ashley Tang
 
+library;
+
 import 'dart:io';
 
 import 'package:args/args.dart';
