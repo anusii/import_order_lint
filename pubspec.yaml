@@ -15,3 +15,6 @@ dependencies:
 
 executables:
   fix_imports: fix_imports
+dev_dependencies:
+  flutter:
+    sdk: flutter
