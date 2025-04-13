@@ -25,6 +25,8 @@
 
 library;
 
+// This file contains real-world test cases for import ordering
+
 // TEST CASE 1: Dart SDK imports
 // import 'dart:convert';
 // import 'dart:async';
