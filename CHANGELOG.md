@@ -1,3 +1,7 @@
+## 0.1.1
+
+* Fix multiple line import handling.
+
 ## 0.1.0
 
 * Added automatic import fixer tool (`fix_imports`) for fixing import order issues automatically

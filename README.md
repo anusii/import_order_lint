@@ -60,7 +60,10 @@ dart run custom_lint
 
 ### Project Name Identification
 
-For correct import categorization, the tool needs to know your project name. By default, it tries to determine this from your `pubspec.yaml` file, but this may not always work correctly, especially in complex repository structures.
+For correct import categorization, the tool needs to know your project
+name. By default, it tries to determine this from your `pubspec.yaml`
+file, but this may not always work correctly, especially in complex
+repository structures.
 
 You have two options to ensure correct project name identification:
 
@@ -80,7 +83,9 @@ $env:DART_PROJECT_NAME="my_project"; dart run custom_lint
 dart run import_order_lint:fix_imports --project-name=my_project -r lib
 ```
 
-This ensures that imports starting with `package:my_project/` are correctly identified as project imports and separated from external package imports.
+This ensures that imports starting with `package:my_project/` are
+correctly identified as project imports and separated from external
+package imports.
 
 ## Automatic Import Fixer
 
