@@ -4,4 +4,7 @@ analyzer:
   
 custom_lint:
   rules:
-    - ordered_imports 
+    - import_order_lint
+options:
+  import_order_lint:
+    project_name: import_order_lint
