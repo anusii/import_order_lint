@@ -1,7 +1,12 @@
-[![Flutter](https://img.shields.io/badge/Made%20with-Flutter-blue.svg)](https://flutter.dev/)
-[![Pub Package](https://img.shields.io/pub/v/import_order_lint)](https://pub.dev/packages/import_order_lint)
-[![GitHub Issues](https://img.shields.io/github/issues/anusii/import_order_lint)](https://github.com/anusii/import_order_lint/issues)
+[![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+
 [![GitHub License](https://img.shields.io/github/license/anusii/import_order_lint)](https://raw.githubusercontent.com/anusii/import_order_lint/main/LICENSE)
+[![GitHub Version](https://img.shields.io/badge/dynamic/yaml?url=https://raw.githubusercontent.com/anusii/import_order_lint/master/pubspec.yaml&query=$.version&label=version&logo=github)](https://github.com/anusii/import_order_lint/blob/dev/CHANGELOG.md)
+[![Pub Version](https://img.shields.io/pub/v/import_order_lint?label=pub.dev&labelColor=333940&logo=flutter)](https://pub.dev/packages/import_order_lint)
+[![GitHub Last Updated](https://img.shields.io/github/last-commit/anusii/import_order_lint?label=last%20updated)](https://github.com/anusii/import_order_lint/commits/main/)
+[![GitHub Commit Activity (main)](https://img.shields.io/github/commit-activity/w/anusii/import_order_lint/main)](https://github.com/anusii/import_order_lint/commits/main/)
+[![GitHub Issues](https://img.shields.io/github/issues/anusii/import_order_lint)](https://github.com/anusii/import_order_lint/issues)
 
 # Import Order Lint
 
