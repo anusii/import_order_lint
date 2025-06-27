@@ -201,61 +201,53 @@ bool _processFile(String filePath,
     final lines = content.split('\n');
 
     // Find import lines, handling multi-line imports.
+    // First, identify all import statements and their line ranges.
 
     final importLines = <String>[];
+    final importLineIndices = <int>[];
     String? currentImport = null;
-    int? importSectionStartIndex = null;
-    int? importSectionEndIndex = null;
+    int? currentImportStartIndex = null;
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
 
       if (line.startsWith('import ')) {
         // Start of a new import.
-        
-        if (importSectionStartIndex == null) {
-          importSectionStartIndex = i;
+
+        // If we were building a previous import, save it first
+        if (currentImport != null && currentImportStartIndex != null) {
+          importLines.add(currentImport);
+          importLineIndices.add(currentImportStartIndex);
         }
 
-        if (currentImport != null) {
-          // If we find a new import while processing another, save the current one.
-          importLines.add(currentImport);
-        }
         currentImport = lines[i];
-        importSectionEndIndex = i;
-      } else if (currentImport != null &&
-          (line.contains(';') ||
-              line.contains('show') ||
-              line.contains('hide'))) {
-        // Continue building the import if it's part of a multi-line import.
+        currentImportStartIndex = i;
 
-        currentImport += '\n' + lines[i];
-        importSectionEndIndex = i;
-        if (line.contains(';')) {
-          // End of import found.
-
+        // Check if this is a single-line import (ends with semicolon)
+        if (line.endsWith(';')) {
           importLines.add(currentImport);
+          importLineIndices.add(currentImportStartIndex);
           currentImport = null;
+          currentImportStartIndex = null;
         }
-      } else if (currentImport != null && line.isNotEmpty) {
-        // Continue building the import if it's part of a multi-line import.
-
+      } else if (currentImport != null && currentImportStartIndex != null) {
+        // Continue building the multi-line import
         currentImport += '\n' + lines[i];
-        importSectionEndIndex = i;
-      } else if (currentImport == null &&
-          line.isNotEmpty &&
-          !line.startsWith('//')) {
-        // If we're not in an import and find a non-empty, non-comment line,
-        // we've passed the import section.
 
-        break;
+        // Check if this line ends the import (contains semicolon)
+        if (line.contains(';')) {
+          importLines.add(currentImport);
+          importLineIndices.add(currentImportStartIndex);
+          currentImport = null;
+          currentImportStartIndex = null;
+        }
       }
     }
 
     // Handle the last import if it wasn't closed.
-
-    if (currentImport != null) {
+    if (currentImport != null && currentImportStartIndex != null) {
       importLines.add(currentImport);
+      importLineIndices.add(currentImportStartIndex);
     }
 
     if (importLines.isEmpty) {
@@ -291,16 +283,47 @@ bool _processFile(String filePath,
     }
 
     // Replace imports in the file.
-    // Use the actual start and end indices of the import section.
+    // Remove all existing import lines, then insert sorted imports at the first import position.
 
-    if (importSectionStartIndex != null && importSectionEndIndex != null) {
-      // Remove all existing imports.
+    if (importLineIndices.isNotEmpty) {
+      // Find the bounds of the import section
+      final firstImportIndex =
+          importLineIndices.reduce((a, b) => a < b ? a : b);
+      final lastImportIndex = importLineIndices.reduce((a, b) => a > b ? a : b);
 
-      lines.removeRange(importSectionStartIndex, importSectionEndIndex + 1);
+      // Find the actual end of the last import (including multi-line)
+      final lastImportText =
+          importLines[importLineIndices.indexOf(lastImportIndex)];
+      final lastImportEndIndex =
+          lastImportIndex + lastImportText.split('\n').length - 1;
 
-      // Insert sorted imports.
+      // Look for the first non-empty line after imports to preserve spacing
+      int nextContentIndex = lastImportEndIndex + 1;
+      while (nextContentIndex < lines.length &&
+          lines[nextContentIndex].trim().isEmpty) {
+        nextContentIndex++;
+      }
 
-      lines.insertAll(importSectionStartIndex, sortedImports);
+      // Remove the import section (including any blank lines immediately after)
+      int endRemovalIndex = lastImportEndIndex + 1;
+      while (endRemovalIndex < nextContentIndex &&
+          endRemovalIndex < lines.length) {
+        endRemovalIndex++;
+      }
+
+      // Remove all import lines and their trailing blank lines
+      lines.removeRange(firstImportIndex, endRemovalIndex);
+
+      // Insert sorted imports with proper spacing
+      final importsWithSpacing = <String>[...sortedImports];
+
+      // Add one blank line after imports if there's content following
+      if (firstImportIndex < lines.length &&
+          lines[firstImportIndex].trim().isNotEmpty) {
+        importsWithSpacing.add('');
+      }
+
+      lines.insertAll(firstImportIndex, importsWithSpacing);
     }
 
     // Write back to file.
