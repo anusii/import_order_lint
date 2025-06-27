@@ -203,24 +203,26 @@ bool _processFile(String filePath,
     // Find import lines, handling multi-line imports.
 
     final importLines = <String>[];
-    final importIndices = <int>[];
     String? currentImport = null;
-    int? startIndex = null;
+    int? importSectionStartIndex = null;
+    int? importSectionEndIndex = null;
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
 
       if (line.startsWith('import ')) {
         // Start of a new import.
+        
+        if (importSectionStartIndex == null) {
+          importSectionStartIndex = i;
+        }
 
         if (currentImport != null) {
           // If we find a new import while processing another, save the current one.
-
           importLines.add(currentImport);
-          importIndices.add(startIndex!);
         }
         currentImport = lines[i];
-        startIndex = i;
+        importSectionEndIndex = i;
       } else if (currentImport != null &&
           (line.contains(';') ||
               line.contains('show') ||
@@ -228,18 +230,18 @@ bool _processFile(String filePath,
         // Continue building the import if it's part of a multi-line import.
 
         currentImport += '\n' + lines[i];
+        importSectionEndIndex = i;
         if (line.contains(';')) {
           // End of import found.
 
           importLines.add(currentImport);
-          importIndices.add(startIndex!);
           currentImport = null;
-          startIndex = null;
         }
       } else if (currentImport != null && line.isNotEmpty) {
         // Continue building the import if it's part of a multi-line import.
 
         currentImport += '\n' + lines[i];
+        importSectionEndIndex = i;
       } else if (currentImport == null &&
           line.isNotEmpty &&
           !line.startsWith('//')) {
@@ -254,7 +256,6 @@ bool _processFile(String filePath,
 
     if (currentImport != null) {
       importLines.add(currentImport);
-      importIndices.add(startIndex!);
     }
 
     if (importLines.isEmpty) {
@@ -290,17 +291,17 @@ bool _processFile(String filePath,
     }
 
     // Replace imports in the file.
+    // Use the actual start and end indices of the import section.
 
-    final firstImportIndex = importIndices.first;
-    final lastImportIndex = importIndices.last;
+    if (importSectionStartIndex != null && importSectionEndIndex != null) {
+      // Remove all existing imports.
 
-    // Remove all existing imports.
+      lines.removeRange(importSectionStartIndex, importSectionEndIndex + 1);
 
-    lines.removeRange(firstImportIndex, lastImportIndex + 1);
+      // Insert sorted imports.
 
-    // Insert sorted imports.
-
-    lines.insertAll(firstImportIndex, sortedImports);
+      lines.insertAll(importSectionStartIndex, sortedImports);
+    }
 
     // Write back to file.
 
