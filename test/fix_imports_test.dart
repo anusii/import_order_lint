@@ -1,7 +1,34 @@
+// Unit tests for the import order fixing logic.
+///
+// Time-stamp: <Thursday 2025-01-30 08:36:00 +1100 Graham Williams>
+///
+/// Copyright (C) 2025, Software Innovation Institute, ANU
+///
+/// Licensed under the GNU General Public License, Version 3 (the "License");
+///
+/// License: https://www.gnu.org/licenses/gpl-3.0.en.html
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+// details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program.  If not, see <https://www.gnu.org/licenses/>.
+///
+/// Authors: Ashley Tang
+
+library;
+
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
 /// Comprehensive tests for the import order fixing logic.
 ///
@@ -16,22 +43,27 @@ late Directory tempDir;
 
 void main() {
   setUpAll(() async {
-    // Create temporary directory for test files
+    // Create temporary directory for test files.
+
     tempDir = await Directory.systemTemp.createTemp('import_order_test_');
 
-    // Create a mock pubspec.yaml for project name detection
+    // Create a mock pubspec.yaml for project name detection.
+
     final pubspecFile = File(path.join(tempDir.path, 'pubspec.yaml'));
     await pubspecFile.writeAsString('''
+
 name: test_project
 version: 1.0.0
 dependencies:
   flutter:
     sdk: flutter
+
 ''');
   });
 
   tearDownAll(() async {
-    // Clean up temporary directory
+    // Clean up temporary directory.
+
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }
@@ -40,6 +72,7 @@ dependencies:
   group('Import Order Fixing Tests', () {
     test('Basic import ordering - all categories', () async {
       const input = '''
+
 import 'package:test_project/models/user.dart';
 import 'dart:async';
 import 'package:http/http.dart';
@@ -53,9 +86,11 @@ class MyWidget extends StatefulWidget {
   @override
   State<MyWidget> createState() => _MyWidgetState();
 }
+
 ''';
 
       const expected = '''
+
 import 'dart:async';
 import 'dart:io';
 
@@ -73,6 +108,7 @@ class MyWidget extends StatefulWidget {
   @override
   State<MyWidget> createState() => _MyWidgetState();
 }
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'basic_ordering');
@@ -80,6 +116,7 @@ class MyWidget extends StatefulWidget {
 
     test('Multi-line imports with show clauses', () async {
       const input = '''
+
 import 'package:flutter/material.dart' show
     Widget,
     StatefulWidget,
@@ -90,9 +127,11 @@ import 'package:test_project/constants.dart' show
     VERSION;
 
 class MyApp extends StatefulWidget {}
+
 ''';
 
       const expected = '''
+
 import 'dart:async';
 
 import 'package:flutter/material.dart' show
@@ -105,6 +144,7 @@ import 'package:test_project/constants.dart' show
     VERSION;
 
 class MyApp extends StatefulWidget {}
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'multiline_show');
@@ -112,6 +152,7 @@ class MyApp extends StatefulWidget {}
 
     test('Multi-line imports with hide clauses', () async {
       const input = '''
+
 import 'package:test_project/widgets.dart' hide
     OldWidget,
     DeprecatedComponent;
@@ -120,9 +161,11 @@ import 'package:http/http.dart' hide
     Client;
 
 void main() {}
+
 ''';
 
       const expected = '''
+
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' hide
@@ -133,6 +176,7 @@ import 'package:test_project/widgets.dart' hide
     DeprecatedComponent;
 
 void main() {}
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'multiline_hide');
@@ -140,6 +184,7 @@ void main() {}
 
     test('Regression test for code duplication bug (#9)', () async {
       const input = '''
+
 import 'package:flutter/material.dart';
 
 import 'package:test_project/constants/health_data_type.dart';
@@ -170,9 +215,11 @@ class HealthSurveyForm extends StatefulWidget {
 
   final String submitButtonText;
 }
+
 ''';
 
       const expected = '''
+
 import 'package:flutter/material.dart';
 
 import 'package:test_project/constants/health_data_type.dart';
@@ -203,6 +250,7 @@ class HealthSurveyForm extends StatefulWidget {
 
   final String submitButtonText;
 }
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'regression_duplication');
@@ -210,6 +258,7 @@ class HealthSurveyForm extends StatefulWidget {
 
     test('Complex multi-line imports with mixed show/hide', () async {
       const input = '''
+
 import 'package:test_project/widgets.dart' show
     CustomButton,
     CustomCard hide
@@ -221,9 +270,11 @@ import 'dart:convert' show
 import 'package:flutter/material.dart';
 
 class MyWidget {}
+
 ''';
 
       const expected = '''
+
 import 'dart:convert' show
     json,
     base64 hide
@@ -237,6 +288,7 @@ import 'package:test_project/widgets.dart' show
     OldButton;
 
 class MyWidget {}
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'complex_multiline');
@@ -244,19 +296,23 @@ class MyWidget {}
 
     test('File with only dart imports', () async {
       const input = '''
+
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
 void main() {}
+
 ''';
 
       const expected = '''
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 void main() {}
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'dart_only');
@@ -264,6 +320,7 @@ void main() {}
 
     test('Already correctly ordered imports', () async {
       const input = '''
+
 import 'dart:async';
 import 'dart:io';
 
@@ -276,23 +333,28 @@ import 'package:test_project/models/user.dart';
 import '../utils/helper.dart';
 
 class MyWidget {}
+
 ''';
 
-      // Should remain unchanged since imports are already correctly ordered
+      // Should remain unchanged since imports are already correctly ordered.
+
       await _testImportFixWithBinary(input, input, 'already_ordered');
     });
 
     test('Imports with as clauses', () async {
       const input = '''
+
 import 'package:path/path.dart' as path;
 import 'dart:math' as math;
 import 'package:flutter/material.dart' as material;
 import 'package:test_project/utils.dart' as utils;
 
 void main() {}
+
 ''';
 
       const expected = '''
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' as material;
@@ -302,14 +364,17 @@ import 'package:path/path.dart' as path;
 import 'package:test_project/utils.dart' as utils;
 
 void main() {}
+
 ''';
 
       await _testImportFixWithBinary(input, expected, 'with_as_clauses');
     });
 
     test('File with no code duplication - ensures fix works', () async {
-      // This test specifically validates that the class definition only appears once
+      // This test specifically validates that the class definition only appears once.
+
       const input = '''
+
 import 'package:flutter/material.dart';
 import 'package:test_project/models/user.dart';
 
@@ -318,9 +383,11 @@ class MyClass {
   final String name;
   MyClass(this.name);
 }
+
 ''';
 
       const expected = '''
+
 import 'package:flutter/material.dart';
 
 import 'package:test_project/models/user.dart';
@@ -330,12 +397,14 @@ class MyClass {
   final String name;
   MyClass(this.name);
 }
+
 ''';
 
       final result =
           await _testImportFixWithBinary(input, expected, 'no_duplication');
 
-      // Additional check: ensure class definition appears exactly once
+      // Additional check: ensure class definition appears exactly once.
+
       final classCount = RegExp(r'class MyClass \{').allMatches(result).length;
       expect(classCount, equals(1),
           reason:
@@ -344,14 +413,17 @@ class MyClass {
   });
 }
 
-/// Helper method to test import fixing using the binary executable
+/// Helper method to test import fixing using the binary executable.
+
 Future<String> _testImportFixWithBinary(
     String input, String expected, String testName) async {
-  // Create test file in temp directory with pubspec.yaml
+  // Create test file in temp directory with pubspec.yaml.
+
   final testFile = File(path.join(tempDir.path, '${testName}.dart'));
   await testFile.writeAsString(input);
 
-  // Run the import fixer binary from the bin directory
+  // Run the import fixer binary from the bin directory.
+
   final scriptPath =
       path.join(Directory.current.path, 'bin', 'fix_imports.dart');
   final result = await Process.run(
@@ -364,12 +436,14 @@ Future<String> _testImportFixWithBinary(
     ],
   );
 
-  // Check that the process completed successfully
+  // Check that the process completed successfully.
+
   expect(result.exitCode, equals(0),
       reason:
           'Import fixer failed with exit code ${result.exitCode}.\nStdout: ${result.stdout}\nStderr: ${result.stderr}');
 
-  // Read the result and compare
+  // Read the result and compare.
+
   final actualContent = await testFile.readAsString();
   expect(actualContent.trim(), equals(expected.trim()),
       reason:
