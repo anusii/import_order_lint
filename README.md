@@ -160,6 +160,28 @@ import 'package:myapp/models/user.dart';
 import 'package:myapp/utils.dart';
 ```
 
+## Testing
+
+Run all regression tests:
+
+```bash
+dart test test/fix_imports_test.dart
+```
+
+Run specific test:
+
+```bash
+dart test test/fix_imports_test.dart -n "Regression test for code duplication"
+```
+
+Testing covers:
+
++ repeated lines of code being included #9
++ multi-line imports - complex imports with show/hide clauses
++ all import categories - Dart, Flutter, External, Project, Relative
++ edge cases - already ordered imports, single categories, as clauses
++ whitespace handling - proper spacing between import groups and following code
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file
