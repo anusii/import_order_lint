@@ -13,6 +13,7 @@ The package is available from
 
 ## 0.2 Consolidate
 
++ Update analyzer/custom_lint_builder dependencies to any [0.1.3 20250725 atangster]
 + Bug fix for errant duplicate code [0.1.2 20250703 atangster]
 + Fix multiple line import handling. [0.1.1 20250627 atangster]
 + Automatic import fixer (`fix_imports`) [0.1.0 20250503 atangster]
