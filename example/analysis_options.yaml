@@ -9,14 +9,8 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
-analyzer:
-  plugins:
-    - custom_lint
-  
-custom_lint:
-  rules:
-    - ordered_imports
-    - import_group_separation
+# Analyzer configuration - no custom_lint plugin needed
+# Import ordering is now handled by the standalone import_order tool
 
 linter:
   # The lint rules applied to this project can be customized in the

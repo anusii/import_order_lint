@@ -1,10 +1,2 @@
-analyzer:
-  plugins:
-    - custom_lint
-  
-custom_lint:
-  rules:
-    - import_order_lint
-options:
-  import_order_lint:
-    project_name: import_order_lint
+# No custom_lint plugin configuration needed
+# Import ordering is now a standalone tool
