@@ -131,8 +131,8 @@ void main(List<String> args) {
       // In check mode, "errors" means files that need fixing.
 
       if (errors.isNotEmpty) {
-        print(
-            '\n❌ Import ordering issues found in ${errors.length} file(s). Run without --check to fix them.');
+        print('\n📝 Summary: Found import ordering issues in ${errors.length} file(s).');
+        print('💡 To fix these issues, run the same command without --set-exit-if-changed');
         exit(1);
       } else {
         print(
@@ -392,9 +392,8 @@ bool _processFile(String filePath,
 
     if (checkMode) {
       if (hasChanges) {
-        if (verbose) {
-          print('❌ Import ordering issues found in $filePath');
-        }
+        // Provide detailed feedback about what's wrong
+        _reportImportIssues(filePath, importLines, sortedImports, verbose);
         return false;
       } else {
         if (verbose) {
@@ -530,6 +529,126 @@ List<String> _sortImports(List<String> imports, String projectName) {
   }
 
   return result;
+}
+
+void _reportImportIssues(String filePath, List<String> originalImports, 
+    List<String> sortedImports, bool verbose) {
+  print('❌ Import ordering issues found in $filePath:');
+  
+  // Compare line by line to find specific issues
+  final issues = <String>[];
+  
+  // Filter out blank lines for comparison
+  final originalNonEmpty = originalImports.where((line) => line.trim().isNotEmpty).toList();
+  final sortedNonEmpty = sortedImports.where((line) => line.trim().isNotEmpty).toList();
+  
+  // Check for order issues
+  for (int i = 0; i < originalNonEmpty.length && i < sortedNonEmpty.length; i++) {
+    final original = originalNonEmpty[i].trim();
+    final sorted = sortedNonEmpty[i].trim();
+    
+    if (original != sorted) {
+      final originalPath = _extractImportPath(original);
+      final sortedPath = _extractImportPath(sorted);
+      
+      if (originalPath != sortedPath) {
+        final originalCategory = _getCategoryName(_getImportCategory(original, ''));
+        final sortedCategory = _getCategoryName(_getImportCategory(sorted, ''));
+        
+        if (originalCategory != sortedCategory) {
+          issues.add('   • $originalCategory import \'$originalPath\' should come after $sortedCategory imports');
+        } else {
+          issues.add('   • Import \'$originalPath\' should come before \'$sortedPath\' (alphabetical order)');
+        }
+        break; // Show first major issue to avoid overwhelming output
+      }
+    }
+  }
+  
+  // Check for missing blank lines between groups  
+  if (_hasMissingGroupSeparation(originalImports)) {
+    issues.add('   • Missing blank lines between different import groups');
+  }
+  
+  // Check for extra imports or missing imports
+  if (originalNonEmpty.length != sortedNonEmpty.length) {
+    issues.add('   • Import count mismatch - some imports may be duplicated or missing');
+  }
+  
+  if (issues.isEmpty) {
+    issues.add('   • Import order needs to be reorganized');
+  }
+  
+  for (final issue in issues) {
+    print(issue);
+  }
+  
+  if (verbose) {
+    print('   Expected order:');
+    print('     1. Dart SDK imports (dart:*)');
+    print('     2. Flutter imports (package:flutter/*)');
+    print('     3. External packages (package:*)');
+    print('     4. Project imports (package:project_name/*)');
+    print('     5. Relative imports (../, ./)');
+    print('     (with blank lines between groups)');
+  }
+}
+
+String _extractImportPath(String importLine) {
+  final singleQuoteMatch = importLine.indexOf("'");
+  final doubleQuoteMatch = importLine.indexOf('"');
+  
+  if (singleQuoteMatch >= 0) {
+    final startIndex = singleQuoteMatch + 1;
+    final endIndex = importLine.indexOf("'", startIndex);
+    if (endIndex > startIndex) {
+      return importLine.substring(startIndex, endIndex);
+    }
+  } else if (doubleQuoteMatch >= 0) {
+    final startIndex = doubleQuoteMatch + 1; 
+    final endIndex = importLine.indexOf('"', startIndex);
+    if (endIndex > startIndex) {
+      return importLine.substring(startIndex, endIndex);
+    }
+  }
+  return importLine;
+}
+
+String _getCategoryName(ImportCategory category) {
+  switch (category) {
+    case ImportCategory.dart:
+      return 'Dart SDK';
+    case ImportCategory.flutter:
+      return 'Flutter';
+    case ImportCategory.external:
+      return 'External package';
+    case ImportCategory.project:
+      return 'Project';
+    case ImportCategory.relative:
+      return 'Relative';
+  }
+}
+
+bool _hasMissingGroupSeparation(List<String> imports) {
+  // Check if there are imports from different categories without blank line separation
+  ImportCategory? lastCategory;
+  
+  for (final importLine in imports) {
+    if (importLine.trim().isEmpty) {
+      lastCategory = null; // Reset on blank line
+      continue;
+    }
+    
+    if (importLine.trim().startsWith('import ')) {
+      final category = _getImportCategory(importLine, '');
+      if (lastCategory != null && lastCategory != category) {
+        return true; // Found category change without blank line
+      }
+      lastCategory = category;
+    }
+  }
+  
+  return false;
 }
 
 ImportCategory _getImportCategory(String importLine, String projectName) {

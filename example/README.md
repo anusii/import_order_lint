@@ -4,15 +4,25 @@ This example demonstrates how to use the **import_order_lint** standalone tool t
 
 ## 🎯 Quick Demo
 
-This project contains intentionally disorganized imports to demonstrate the tool's capabilities.
+This project contains test files with commented-out imports that you can uncomment to test the tool's capabilities.
+
+### Test Files Available
+- `test/test_comments.dart` - Basic import ordering scenarios
+- `test/test_multi_line_imports.dart` - Complex multi-line import statements  
+- `test/test_rio_imports.dart` - Real-world import examples
+
+**To test:** Uncomment some imports in the test files, then run the tool to see it detect and fix ordering issues!
 
 ### Check Import Ordering
 ```bash
 # From the example directory, check import issues
 dart run ../bin/import_order.dart --set-exit-if-changed
 
+# Check specific test files
+dart run ../bin/import_order.dart --set-exit-if-changed test/
+
 # Or run from parent directory
-dart run import_order_lint/bin/import_order.dart --set-exit-if-changed example/lib
+dart run import_order_lint/bin/import_order.dart --set-exit-if-changed example/
 ```
 
 ### Fix Import Ordering  
@@ -20,8 +30,11 @@ dart run import_order_lint/bin/import_order.dart --set-exit-if-changed example/l
 # From the example directory, fix import issues
 dart run ../bin/import_order.dart
 
+# Fix specific test files
+dart run ../bin/import_order.dart test/
+
 # Or run from parent directory  
-dart run import_order_lint/bin/import_order.dart example/lib
+dart run import_order_lint/bin/import_order.dart example/
 ```
 
 ## 🚀 Key Features Demonstrated
