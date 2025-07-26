@@ -51,6 +51,17 @@ void main(List<String> args) {
         help: 'Recursively search for Dart files in directories')
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output')
+    ..addFlag('check',
+        abbr: 'c',
+        negatable: false,
+        help: 'Check import ordering without fixing (useful for CI/CD)')
+    ..addFlag('set-exit-if-changed',
+        negatable: false,
+        help:
+            'Return exit code 1 if imports would be changed (like dart format)')
+    ..addFlag('dry-run',
+        negatable: false,
+        help: 'Same as --check, show what would be fixed without fixing')
     ..addOption('project-name',
         help: 'Explicitly set the project name for import categorization');
 
@@ -64,6 +75,9 @@ void main(List<String> args) {
 
     final bool verbose = argResults['verbose'] as bool;
     final bool recursive = argResults['recursive'] as bool;
+    final bool checkMode = argResults['check'] as bool ||
+        argResults['dry-run'] as bool ||
+        argResults['set-exit-if-changed'] as bool;
     final String? explicitProjectName = argResults['project-name'] as String?;
     final List<String> filePaths = argResults.rest;
 
@@ -89,7 +103,9 @@ void main(List<String> args) {
       if (fileOrDir == FileSystemEntityType.file) {
         if (filePath.endsWith('.dart')) {
           final result = _processFile(filePath,
-              verbose: verbose, explicitProjectName: projectName);
+              verbose: verbose,
+              explicitProjectName: projectName,
+              checkMode: checkMode);
           if (result) {
             processedFiles.add(filePath);
           } else {
@@ -102,7 +118,8 @@ void main(List<String> args) {
         final dirResults = _processDirectory(filePath,
             recursive: recursive,
             verbose: verbose,
-            explicitProjectName: projectName);
+            explicitProjectName: projectName,
+            checkMode: checkMode);
         processedFiles.addAll(dirResults.processed);
         errors.addAll(dirResults.errors);
       } else {
@@ -110,14 +127,28 @@ void main(List<String> args) {
       }
     }
 
-    if (processedFiles.isNotEmpty) {
-      print(
-          '\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
-    }
+    if (checkMode) {
+      // In check mode, "errors" means files that need fixing
+      if (errors.isNotEmpty) {
+        print(
+            '\n❌ Import ordering issues found in ${errors.length} file(s). Run without --check to fix them.');
+        exit(1); // Fail CI/CD build
+      } else {
+        print(
+            '\n✅ Import ordering is correct in all ${processedFiles.length} file(s).');
+        exit(0); // Pass CI/CD build
+      }
+    } else {
+      // Fix mode (original behavior)
+      if (processedFiles.isNotEmpty) {
+        print(
+            '\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
+      }
 
-    if (errors.isNotEmpty) {
-      print('\nFailed to fix import ordering in ${errors.length} file(s).');
-      exit(1);
+      if (errors.isNotEmpty) {
+        print('\nFailed to fix import ordering in ${errors.length} file(s).');
+        exit(1);
+      }
     }
   } catch (e) {
     print('Error: $e');
@@ -147,6 +178,15 @@ Examples:
   
   # Fix imports with explicit project name
   dart fix_imports.dart --project-name=myapp lib/main.dart
+  
+  # Check import ordering without fixing (CI/CD mode)
+  dart fix_imports.dart --check -r lib
+  
+  # Return exit code 1 if imports would be changed (like dart format)
+  dart fix_imports.dart --set-exit-if-changed -r lib
+  
+  # Dry run (same as --check)
+  dart fix_imports.dart --dry-run -r lib
 ''');
 }
 
@@ -155,6 +195,7 @@ Examples:
   required bool recursive,
   required bool verbose,
   String? explicitProjectName,
+  required bool checkMode,
 }) {
   final processed = <String>[];
   final errors = <String>[];
@@ -166,7 +207,9 @@ Examples:
     for (final entity in entities) {
       if (entity is File && entity.path.endsWith('.dart')) {
         final result = _processFile(entity.path,
-            verbose: verbose, explicitProjectName: explicitProjectName);
+            verbose: verbose,
+            explicitProjectName: explicitProjectName,
+            checkMode: checkMode);
         if (result) {
           processed.add(entity.path);
         } else {
@@ -182,7 +225,9 @@ Examples:
 }
 
 bool _processFile(String filePath,
-    {required bool verbose, String? explicitProjectName}) {
+    {required bool verbose,
+    String? explicitProjectName,
+    required bool checkMode}) {
   try {
     if (verbose) {
       print('Processing: $filePath');
@@ -338,14 +383,37 @@ bool _processFile(String filePath,
       lines.insertAll(firstImportIndex, importsWithSpacing);
     }
 
-    // Write back to file.
+    // Compare with original content to check if changes are needed
+    final newContent = lines.join('\n');
+    final hasChanges = content != newContent;
 
-    file.writeAsStringSync(lines.join('\n'));
-
-    if (verbose) {
-      print('Successfully fixed import ordering in $filePath');
+    if (checkMode) {
+      if (hasChanges) {
+        if (verbose) {
+          print('❌ Import ordering issues found in $filePath');
+        }
+        return false; // Issues found, needs fixing
+      } else {
+        if (verbose) {
+          print('✅ Import ordering is correct in $filePath');
+        }
+        return true; // No issues
+      }
     }
-    return true;
+
+    // Fix mode: Write back to file only if there are changes
+    if (hasChanges) {
+      file.writeAsStringSync(newContent);
+      if (verbose) {
+        print('Successfully fixed import ordering in $filePath');
+      }
+      return true;
+    } else {
+      if (verbose) {
+        print('No import ordering changes needed in $filePath');
+      }
+      return true;
+    }
   } catch (e) {
     print('Error processing file $filePath: $e');
     return false;
