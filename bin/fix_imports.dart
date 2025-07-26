@@ -128,18 +128,20 @@ void main(List<String> args) {
     }
 
     if (checkMode) {
-      // In check mode, "errors" means files that need fixing
+      // In check mode, "errors" means files that need fixing.
+
       if (errors.isNotEmpty) {
         print(
             '\n❌ Import ordering issues found in ${errors.length} file(s). Run without --check to fix them.');
-        exit(1); // Fail CI/CD build
+        exit(1);
       } else {
         print(
             '\n✅ Import ordering is correct in all ${processedFiles.length} file(s).');
-        exit(0); // Pass CI/CD build
+        exit(0);
       }
     } else {
-      // Fix mode (original behavior)
+      // Fix mode (original behavior).
+
       if (processedFiles.isNotEmpty) {
         print(
             '\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
@@ -383,7 +385,8 @@ bool _processFile(String filePath,
       lines.insertAll(firstImportIndex, importsWithSpacing);
     }
 
-    // Compare with original content to check if changes are needed
+    // Compare with original content to check if changes are needed.
+
     final newContent = lines.join('\n');
     final hasChanges = content != newContent;
 
@@ -392,16 +395,17 @@ bool _processFile(String filePath,
         if (verbose) {
           print('❌ Import ordering issues found in $filePath');
         }
-        return false; // Issues found, needs fixing
+        return false;
       } else {
         if (verbose) {
           print('✅ Import ordering is correct in $filePath');
         }
-        return true; // No issues
+        return true;
       }
     }
 
-    // Fix mode: Write back to file only if there are changes
+    // Fix mode: Write back to file only if there are changes.
+
     if (hasChanges) {
       file.writeAsStringSync(newContent);
       if (verbose) {

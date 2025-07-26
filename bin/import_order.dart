@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Import Order Tool - Ergonomic entry point (like dart format)
+// Import Order Tool - entry point
 ///
 // Time-stamp: <Thursday 2025-01-30 08:36:00 +1100 Graham Williams>
 ///
@@ -8,16 +8,29 @@
 /// Licensed under the GNU General Public License, Version 3 (the "License");
 ///
 /// License: https://www.gnu.org/licenses/gpl-3.0.en.html
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+// details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program.  If not, see <https://www.gnu.org/licenses/>.
+///
+/// Authors: Ashley Tang
 
 library;
 
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-// Import the existing implementation
 import 'fix_imports.dart' as fix_imports_impl;
 
 void main(List<String> args) {
@@ -48,13 +61,15 @@ void main(List<String> args) {
       exit(0);
     }
 
-    // Get paths from arguments, default to 'lib' if none provided
+    // Get paths from arguments, default to 'lib' if none provided.
+
     List<String> filePaths = argResults.rest;
     if (filePaths.isEmpty) {
       filePaths = ['lib'];
     }
 
-    // Auto-detect project name if not provided
+    // Auto-detect project name if not provided.
+
     String? projectName = argResults['project-name'] as String?;
     if (projectName == null) {
       projectName = _getProjectNameFromPubspec(Directory.current.path);
@@ -64,7 +79,8 @@ void main(List<String> args) {
       }
     }
 
-    // Convert our simplified args to the full fix_imports format
+    // Convert our simplified args to the full fix_imports format.
+
     final newArgs = <String>[];
 
     if (argResults['verbose'] as bool) newArgs.add('--verbose');
@@ -77,13 +93,15 @@ void main(List<String> args) {
       newArgs.addAll(['--project-name', projectName]);
     }
 
-    // Always recursive since we're defaulting to directories
+    // Always recursive since we're defaulting to directories.
     newArgs.add('--recursive');
 
-    // Add the paths
+    // Add the paths.
+
     newArgs.addAll(filePaths);
 
-    // Call the existing implementation
+    // Call the existing implementation.
+
     fix_imports_impl.main(newArgs);
   } catch (e) {
     print('Error: $e');
@@ -126,7 +144,8 @@ CI/CD Usage:
 ''');
 }
 
-/// Gets the package name from the project's pubspec.yaml file.
+// Gets the package name from the project's pubspec.yaml file.
+
 String _getProjectNameFromPubspec(String projectPath) {
   final pubspecFile = File('$projectPath/pubspec.yaml');
   if (!pubspecFile.existsSync()) {

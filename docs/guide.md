@@ -10,7 +10,7 @@ This guide explains how to use the import_order_lint package for both developmen
 scripts/check_imports.sh    # Linux/macOS
 scripts/check_imports.bat   # Windows
 
-# Direct command (like dart format --set-exit-if-changed)
+# Direct command 
 dart run import_order_lint:import_order --set-exit-if-changed
 ```
 
@@ -75,23 +75,6 @@ dart run import_order_lint:import_order --set-exit-if-changed -v
 # Explicit project name (if auto-detection fails)
 dart run import_order_lint:import_order --project-name=myproject
 ```
-
-## 🎯 Consistent with Dart Tools
-
-This tool follows the same patterns as other Dart tools:
-
-```bash
-# Code formatting
-dart format --set-exit-if-changed .     # Exit code 1 if files would be changed
-
-# Import ordering  
-dart run import_order_lint:import_order --set-exit-if-changed  # Same behavior
-```
-
-Both tools:
-- ✅ **Exit code 0**: No changes needed (CI passes)
-- ❌ **Exit code 1**: Changes required (CI fails)
-- 🔧 **No `--set-exit-if-changed`**: Apply fixes to files
 
 ## 🚀 CI/CD Integration
 

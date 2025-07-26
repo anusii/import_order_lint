@@ -10,18 +10,13 @@
 
 # Import Order Lint
 
-A professional import ordering tool for Dart and Flutter projects that enforces consistent import organization following the [Flutter Style Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
-
-**🚀 Now with ergonomic commands like `dart format`!**
+An import ordering tool for Dart and Flutter projects that enforces consistent import organization following the [Flutter Style Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
 
 The package is published on [pub.dev](https://pub.dev/packages/import_order_lint).
 
 ## Features
 
-- 🎯 **Ergonomic commands** - Works like `dart format --set-exit-if-changed`
-- 🔍 **Auto-detection** - Automatically detects project name from `pubspec.yaml`
-- 📁 **Smart defaults** - Defaults to `lib` directory, recursive by default
-- ✅ **CI/CD ready** - Perfect exit codes for automated pipelines
+
 - 🔧 **Enforces consistent import ordering** across your Dart/Flutter project
 - 📚 **Groups imports into categories**:
   1. Dart SDK imports (e.g., 'dart:core', 'dart:async')
@@ -31,18 +26,21 @@ The package is published on [pub.dev](https://pub.dev/packages/import_order_lint
   5. Relative imports (relative path imports)
 - 🎨 **Alphabetical sorting** within each group
 - 📏 **Proper spacing** - Blank lines between different import groups
+- 🔍 **Auto-detection** - Automatically detects project name from `pubspec.yaml`
+- 📁 **Smart defaults** - Defaults to `lib` directory, recursive by default
+- ✅ **CI/CD ready** - Exit codes for automated pipelines
 
 ## 🎯 Quick Start
 
 ```bash
-# Fix import ordering (like dart format)
+# Fix import ordering 
 dart run import_order_lint:import_order
 
 # Check import ordering (CI/CD mode)
 dart run import_order_lint:import_order --set-exit-if-changed
 ```
 
-Works just like `dart format` - **auto-detects your project**, **defaults to lib directory**, and **provides proper CI/CD exit codes**!
+**Auto-detects your project**, **defaults to lib directory**, and **provides proper CI/CD exit codes**!
 
 ## Installation
 
@@ -127,16 +125,6 @@ Perfect for automated pipelines - just like `dart format --set-exit-if-changed`:
 **Exit Codes:**
 - ✅ **0**: All imports correctly ordered (CI passes)
 - ❌ **1**: Import issues found (CI fails)
-
-## 🎯 **Consistent with Dart Tools**
-
-```bash
-# Code formatting
-dart format --set-exit-if-changed .
-
-# Import ordering (same pattern!)
-dart run import_order_lint:import_order --set-exit-if-changed
-```
 
 ## Example
 
