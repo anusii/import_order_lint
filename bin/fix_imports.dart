@@ -51,6 +51,17 @@ void main(List<String> args) {
         help: 'Recursively search for Dart files in directories')
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output')
+    ..addFlag('check',
+        abbr: 'c',
+        negatable: false,
+        help: 'Check import ordering without fixing (useful for CI/CD)')
+    ..addFlag('set-exit-if-changed',
+        negatable: false,
+        help:
+            'Return exit code 1 if imports would be changed (like dart format)')
+    ..addFlag('dry-run',
+        negatable: false,
+        help: 'Same as --check, show what would be fixed without fixing')
     ..addOption('project-name',
         help: 'Explicitly set the project name for import categorization');
 
@@ -64,6 +75,9 @@ void main(List<String> args) {
 
     final bool verbose = argResults['verbose'] as bool;
     final bool recursive = argResults['recursive'] as bool;
+    final bool checkMode = argResults['check'] as bool ||
+        argResults['dry-run'] as bool ||
+        argResults['set-exit-if-changed'] as bool;
     final String? explicitProjectName = argResults['project-name'] as String?;
     final List<String> filePaths = argResults.rest;
 
@@ -89,7 +103,9 @@ void main(List<String> args) {
       if (fileOrDir == FileSystemEntityType.file) {
         if (filePath.endsWith('.dart')) {
           final result = _processFile(filePath,
-              verbose: verbose, explicitProjectName: projectName);
+              verbose: verbose,
+              explicitProjectName: projectName,
+              checkMode: checkMode);
           if (result) {
             processedFiles.add(filePath);
           } else {
@@ -102,7 +118,8 @@ void main(List<String> args) {
         final dirResults = _processDirectory(filePath,
             recursive: recursive,
             verbose: verbose,
-            explicitProjectName: projectName);
+            explicitProjectName: projectName,
+            checkMode: checkMode);
         processedFiles.addAll(dirResults.processed);
         errors.addAll(dirResults.errors);
       } else {
@@ -110,14 +127,30 @@ void main(List<String> args) {
       }
     }
 
-    if (processedFiles.isNotEmpty) {
-      print(
-          '\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
-    }
+    if (checkMode) {
+      // In check mode, "errors" means files that need fixing.
 
-    if (errors.isNotEmpty) {
-      print('\nFailed to fix import ordering in ${errors.length} file(s).');
-      exit(1);
+      if (errors.isNotEmpty) {
+        print('\n📝 Summary: Found import ordering issues in ${errors.length} file(s).');
+        print('💡 To fix these issues, run the same command without --set-exit-if-changed');
+        exit(1);
+      } else {
+        print(
+            '\n✅ Import ordering is correct in all ${processedFiles.length} file(s).');
+        exit(0);
+      }
+    } else {
+      // Fix mode (original behavior).
+
+      if (processedFiles.isNotEmpty) {
+        print(
+            '\nSuccessfully fixed import ordering in ${processedFiles.length} file(s).');
+      }
+
+      if (errors.isNotEmpty) {
+        print('\nFailed to fix import ordering in ${errors.length} file(s).');
+        exit(1);
+      }
     }
   } catch (e) {
     print('Error: $e');
@@ -147,6 +180,15 @@ Examples:
   
   # Fix imports with explicit project name
   dart fix_imports.dart --project-name=myapp lib/main.dart
+  
+  # Check import ordering without fixing (CI/CD mode)
+  dart fix_imports.dart --check -r lib
+  
+  # Return exit code 1 if imports would be changed (like dart format)
+  dart fix_imports.dart --set-exit-if-changed -r lib
+  
+  # Dry run (same as --check)
+  dart fix_imports.dart --dry-run -r lib
 ''');
 }
 
@@ -155,6 +197,7 @@ Examples:
   required bool recursive,
   required bool verbose,
   String? explicitProjectName,
+  required bool checkMode,
 }) {
   final processed = <String>[];
   final errors = <String>[];
@@ -166,7 +209,9 @@ Examples:
     for (final entity in entities) {
       if (entity is File && entity.path.endsWith('.dart')) {
         final result = _processFile(entity.path,
-            verbose: verbose, explicitProjectName: explicitProjectName);
+            verbose: verbose,
+            explicitProjectName: explicitProjectName,
+            checkMode: checkMode);
         if (result) {
           processed.add(entity.path);
         } else {
@@ -182,7 +227,9 @@ Examples:
 }
 
 bool _processFile(String filePath,
-    {required bool verbose, String? explicitProjectName}) {
+    {required bool verbose,
+    String? explicitProjectName,
+    required bool checkMode}) {
   try {
     if (verbose) {
       print('Processing: $filePath');
@@ -338,14 +385,38 @@ bool _processFile(String filePath,
       lines.insertAll(firstImportIndex, importsWithSpacing);
     }
 
-    // Write back to file.
+    // Compare with original content to check if changes are needed.
 
-    file.writeAsStringSync(lines.join('\n'));
+    final newContent = lines.join('\n');
+    final hasChanges = content != newContent;
 
-    if (verbose) {
-      print('Successfully fixed import ordering in $filePath');
+    if (checkMode) {
+      if (hasChanges) {
+        // Provide detailed feedback about what's wrong
+        _reportImportIssues(filePath, importLines, sortedImports, verbose);
+        return false;
+      } else {
+        if (verbose) {
+          print('✅ Import ordering is correct in $filePath');
+        }
+        return true;
+      }
     }
-    return true;
+
+    // Fix mode: Write back to file only if there are changes.
+
+    if (hasChanges) {
+      file.writeAsStringSync(newContent);
+      if (verbose) {
+        print('Successfully fixed import ordering in $filePath');
+      }
+      return true;
+    } else {
+      if (verbose) {
+        print('No import ordering changes needed in $filePath');
+      }
+      return true;
+    }
   } catch (e) {
     print('Error processing file $filePath: $e');
     return false;
@@ -458,6 +529,126 @@ List<String> _sortImports(List<String> imports, String projectName) {
   }
 
   return result;
+}
+
+void _reportImportIssues(String filePath, List<String> originalImports, 
+    List<String> sortedImports, bool verbose) {
+  print('❌ Import ordering issues found in $filePath:');
+  
+  // Compare line by line to find specific issues
+  final issues = <String>[];
+  
+  // Filter out blank lines for comparison
+  final originalNonEmpty = originalImports.where((line) => line.trim().isNotEmpty).toList();
+  final sortedNonEmpty = sortedImports.where((line) => line.trim().isNotEmpty).toList();
+  
+  // Check for order issues
+  for (int i = 0; i < originalNonEmpty.length && i < sortedNonEmpty.length; i++) {
+    final original = originalNonEmpty[i].trim();
+    final sorted = sortedNonEmpty[i].trim();
+    
+    if (original != sorted) {
+      final originalPath = _extractImportPath(original);
+      final sortedPath = _extractImportPath(sorted);
+      
+      if (originalPath != sortedPath) {
+        final originalCategory = _getCategoryName(_getImportCategory(original, ''));
+        final sortedCategory = _getCategoryName(_getImportCategory(sorted, ''));
+        
+        if (originalCategory != sortedCategory) {
+          issues.add('   • $originalCategory import \'$originalPath\' should come after $sortedCategory imports');
+        } else {
+          issues.add('   • Import \'$originalPath\' should come before \'$sortedPath\' (alphabetical order)');
+        }
+        break; // Show first major issue to avoid overwhelming output
+      }
+    }
+  }
+  
+  // Check for missing blank lines between groups  
+  if (_hasMissingGroupSeparation(originalImports)) {
+    issues.add('   • Missing blank lines between different import groups');
+  }
+  
+  // Check for extra imports or missing imports
+  if (originalNonEmpty.length != sortedNonEmpty.length) {
+    issues.add('   • Import count mismatch - some imports may be duplicated or missing');
+  }
+  
+  if (issues.isEmpty) {
+    issues.add('   • Import order needs to be reorganized');
+  }
+  
+  for (final issue in issues) {
+    print(issue);
+  }
+  
+  if (verbose) {
+    print('   Expected order:');
+    print('     1. Dart SDK imports (dart:*)');
+    print('     2. Flutter imports (package:flutter/*)');
+    print('     3. External packages (package:*)');
+    print('     4. Project imports (package:project_name/*)');
+    print('     5. Relative imports (../, ./)');
+    print('     (with blank lines between groups)');
+  }
+}
+
+String _extractImportPath(String importLine) {
+  final singleQuoteMatch = importLine.indexOf("'");
+  final doubleQuoteMatch = importLine.indexOf('"');
+  
+  if (singleQuoteMatch >= 0) {
+    final startIndex = singleQuoteMatch + 1;
+    final endIndex = importLine.indexOf("'", startIndex);
+    if (endIndex > startIndex) {
+      return importLine.substring(startIndex, endIndex);
+    }
+  } else if (doubleQuoteMatch >= 0) {
+    final startIndex = doubleQuoteMatch + 1; 
+    final endIndex = importLine.indexOf('"', startIndex);
+    if (endIndex > startIndex) {
+      return importLine.substring(startIndex, endIndex);
+    }
+  }
+  return importLine;
+}
+
+String _getCategoryName(ImportCategory category) {
+  switch (category) {
+    case ImportCategory.dart:
+      return 'Dart SDK';
+    case ImportCategory.flutter:
+      return 'Flutter';
+    case ImportCategory.external:
+      return 'External package';
+    case ImportCategory.project:
+      return 'Project';
+    case ImportCategory.relative:
+      return 'Relative';
+  }
+}
+
+bool _hasMissingGroupSeparation(List<String> imports) {
+  // Check if there are imports from different categories without blank line separation
+  ImportCategory? lastCategory;
+  
+  for (final importLine in imports) {
+    if (importLine.trim().isEmpty) {
+      lastCategory = null; // Reset on blank line
+      continue;
+    }
+    
+    if (importLine.trim().startsWith('import ')) {
+      final category = _getImportCategory(importLine, '');
+      if (lastCategory != null && lastCategory != category) {
+        return true; // Found category change without blank line
+      }
+      lastCategory = category;
+    }
+  }
+  
+  return false;
 }
 
 ImportCategory _getImportCategory(String importLine, String projectName) {

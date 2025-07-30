@@ -10,22 +10,37 @@
 
 # Import Order Lint
 
-A custom lint plugin for enforcing consistent import ordering in Dart
-files as documented in the [Flutter Style Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
+An import ordering tool for Dart and Flutter projects that enforces consistent import organization following the [Flutter Style Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
 
-The package is published on the Flutter repository at
-[pub.dev](https://pub.dev/packages/import_order_lint).
+The package is published on [pub.dev](https://pub.dev/packages/import_order_lint).
 
 ## Features
 
-- Enforces consistent import ordering across your Dart/Flutter project
-- Groups imports into categories:
+
+- 🔧 **Enforces consistent import ordering** across your Dart/Flutter project
+- 📚 **Groups imports into categories**:
   1. Dart SDK imports (e.g., 'dart:core', 'dart:async')
   2. Flutter imports (packages starting with 'package:flutter/')
   3. External package imports (other 'package:' imports)
-  4. Project imports (relative path imports)
-- Requires blank lines between different import groups
-- Sorts imports alphabetically within each group
+  4. Project imports (package imports for your project)
+  5. Relative imports (relative path imports)
+- 🎨 **Alphabetical sorting** within each group
+- 📏 **Proper spacing** - Blank lines between different import groups
+- 🔍 **Auto-detection** - Automatically detects project name from `pubspec.yaml`
+- 📁 **Smart defaults** - Defaults to `lib` directory, recursive by default
+- ✅ **CI/CD ready** - Exit codes for automated pipelines
+
+## 🎯 Quick Start
+
+```bash
+# Fix import ordering 
+dart run import_order_lint:import_order
+
+# Check import ordering (CI/CD mode)
+dart run import_order_lint:import_order --set-exit-if-changed
+```
+
+**Auto-detects your project**, **defaults to lib directory**, and **provides proper CI/CD exit codes**!
 
 ## Installation
 
@@ -33,114 +48,83 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  custom_lint: ^0.7.5
-  import_order_lint: ^0.1.1
-```
-
-### Configuration
-
-Create or update your `analysis_options.yaml`:
-
-```yaml
-analyzer:
-  plugins:
-    - custom_lint
-
-custom_lint:
-  rules:
-    - import_order_lint
-  options:
-    import_order_lint:
-      project_name: myapp
+  import_order_lint: ^0.1.4
 ```
 
 ## Usage
 
-The lint rule will automatically analyze your Dart files and report
-any import ordering issues. You can run the linter using:
-
+### 🔧 **Development Mode** (Fix imports)
 ```bash
-dart run custom_lint
+# Fix lib directory (default)
+dart run import_order_lint:import_order
+
+# Fix specific directories
+dart run import_order_lint:import_order lib test
+
+# Fix single file
+dart run import_order_lint:import_order lib/main.dart
 ```
 
-### Project Name Identification
-
-For correct import categorization, the tool needs to know your project
-name. By default, it tries to determine this from your `pubspec.yaml`
-file, but this may not always work correctly, especially in complex
-repository structures.
-
-You have two options to ensure correct project name identification:
-
-1. For linting with `custom_lint`, set the `DART_PROJECT_NAME` environment variable:
-
+### ✅ **CI/CD Mode** (Check only)
 ```bash
-# On Unix-like systems (Linux, macOS)
-DART_PROJECT_NAME=my_project dart run custom_lint
+# Check lib directory (default) - like dart format --set-exit-if-changed
+dart run import_order_lint:import_order --set-exit-if-changed
 
-# On Windows PowerShell
-$env:DART_PROJECT_NAME="my_project"; dart run custom_lint
+# Check with verbose output
+dart run import_order_lint:import_order --set-exit-if-changed -v
+
+# Check specific paths  
+dart run import_order_lint:import_order --set-exit-if-changed lib test
 ```
 
-2. For the import fixer tool, use the `--project-name` parameter (recommended):
+### 🎯 **Smart Defaults**
+- **Auto-detects project name** from `pubspec.yaml`
+- **Defaults to `lib` directory** if no paths specified
+- **Recursive by default** for directories
+- **Perfect CI/CD integration** with proper exit codes
+
+### 📋 **Available Options**
+- `-h, --help` - Show help information
+- `-v, --verbose` - Show detailed output  
+- `--set-exit-if-changed` - Return exit code 1 if imports would be changed (like `dart format`)
+- `-c, --check` - Same as `--set-exit-if-changed`
+- `--dry-run` - Same as `--check`
+- `--project-name=NAME` - Explicitly set project name (auto-detected by default)
+
+### 🛠️ **Convenience Scripts**
+
+The package includes convenience scripts in the `scripts/` directory:
 
 ```bash
-dart run import_order_lint:fix_imports --project-name=my_project -r lib
+# Development (fix imports)
+scripts/fix_imports.sh        # Linux/macOS
+scripts/fix_imports.bat       # Windows
+
+# CI/CD (check imports)  
+scripts/check_imports.sh      # Linux/macOS
+scripts/check_imports.bat     # Windows
 ```
 
-This ensures that imports starting with `package:my_project/` are
-correctly identified as project imports and separated from external
-package imports.
+## 🚀 **CI/CD Integration**
 
-## Automatic Import Fixer
-
-This package also includes a command-line tool to automatically fix import ordering in your files:
-
-```bash
-# If installed as a dependency
-dart run import_order_lint:fix_imports [options] <file_or_directory_paths>
-
-# If activated globally
-dart pub global activate import_order_lint
-fix_imports [options] <file_or_directory_paths>
-```
-
-### Options
-
-- `-r, --recursive`: Recursively search for Dart files in directories
-- `-v, --verbose`: Show verbose output
-- `-h, --help`: Print usage information
-- `--project-name=<name>`: Explicitly set the project name for correct import categorization
-
-### Examples
-
-```bash
-# Fix a single file
-dart run import_order_lint:fix_imports lib/main.dart
-
-# Fix all Dart files in a directory recursively
-dart run import_order_lint:fix_imports -r lib
-
-# Fix multiple files with verbose output
-dart run import_order_lint:fix_imports -v lib/main.dart lib/widgets/app.dart
-
-# Fix imports with explicit project name (recommended)
-dart run import_order_lint:fix_imports --project-name=myapp -r lib
-```
-
-### Integration with CI/CD
-
-You can integrate the import fixer into your CI/CD pipeline to ensure consistent import ordering:
+Perfect for automated pipelines - just like `dart format --set-exit-if-changed`:
 
 ```yaml
-# Example GitHub Actions workflow step
-- name: Fix import ordering
-  run: dart run import_order_lint:fix_imports --project-name=myapp -r lib
+# GitHub Actions
+- name: Check code formatting
+  run: dart format --set-exit-if-changed .
+  
+- name: Check import ordering
+  run: dart run import_order_lint:import_order --set-exit-if-changed
 
-# Check if any files were changed (will fail if imports were fixed)
-- name: Check for changes
-  run: git diff --exit-code
+# Or using convenience scripts
+- name: Check import ordering
+  run: scripts/check_imports.sh
 ```
+
+**Exit Codes:**
+- ✅ **0**: All imports correctly ordered (CI passes)
+- ❌ **1**: Import issues found (CI fails)
 
 ## Example
 

@@ -25,24 +25,21 @@
 
 library;
 
-// These are Dart core imports
-// import 'dart:async';
-// import 'dart:convert';
+// These are Dart core imports - INTENTIONALLY OUT OF ORDER for testing
+import 'package:flutter/material.dart';
+import 'package:example/models/user.dart';
+import 'dart:convert';
+import 'package:riodm/riodm.dart';
+import 'dart:async';
+import '../lib/utils.dart';
+import 'package:example/widgets/session_widget.dart';
+import 'package:solidpod/solidpod.dart'
+    // These are the exact functions we need
+    show
+      GrantPermissionUrl,
+      getWebId,
+      readPod;
 
-// import 'package:flutter/material.dart';
-
-// import 'package:riodm/riodm.dart';
-// import 'package:solidpod/solidpod.dart'
-//     // These are the exact functions we need
-//     show
-//       GrantPermissionUrl,
-//       getWebId,
-//       readPod;
-
-// import 'package:example/models/user.dart';
-// import 'package:example/widgets/session_widget.dart';
-
-// import '../lib/utils.dart';
 // void main() {
 //   print('Testing import ordering with comments preservation');
 // }
