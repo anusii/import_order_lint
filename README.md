@@ -33,7 +33,7 @@ The package is published on [pub.dev](https://pub.dev/packages/import_order_lint
 ## 🎯 Quick Start
 
 ```bash
-# Fix import ordering 
+# Fix import ordering
 dart run import_order_lint:import_order
 
 # Check import ordering (CI/CD mode)
@@ -48,7 +48,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  import_order_lint: ^0.1.4
+  import_order_lint: ^0.2.0
 ```
 
 ## Usage
@@ -73,7 +73,7 @@ dart run import_order_lint:import_order --set-exit-if-changed
 # Check with verbose output
 dart run import_order_lint:import_order --set-exit-if-changed -v
 
-# Check specific paths  
+# Check specific paths
 dart run import_order_lint:import_order --set-exit-if-changed lib test
 ```
 
@@ -85,7 +85,7 @@ dart run import_order_lint:import_order --set-exit-if-changed lib test
 
 ### 📋 **Available Options**
 - `-h, --help` - Show help information
-- `-v, --verbose` - Show detailed output  
+- `-v, --verbose` - Show detailed output
 - `--set-exit-if-changed` - Return exit code 1 if imports would be changed (like `dart format`)
 - `-c, --check` - Same as `--set-exit-if-changed`
 - `--dry-run` - Same as `--check`
@@ -100,7 +100,7 @@ The package includes convenience scripts in the `scripts/` directory:
 scripts/fix_imports.sh        # Linux/macOS
 scripts/fix_imports.bat       # Windows
 
-# CI/CD (check imports)  
+# CI/CD (check imports)
 scripts/check_imports.sh      # Linux/macOS
 scripts/check_imports.bat     # Windows
 ```
@@ -113,7 +113,7 @@ Perfect for automated pipelines - just like `dart format --set-exit-if-changed`:
 # GitHub Actions
 - name: Check code formatting
   run: dart format --set-exit-if-changed .
-  
+
 - name: Check import ordering
   run: dart run import_order_lint:import_order --set-exit-if-changed
 
