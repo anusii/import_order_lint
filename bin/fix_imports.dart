@@ -41,6 +41,21 @@ enum ImportCategory {
   relative,
 }
 
+// Class to represent an import block (import statement + associated comments)
+class ImportBlock {
+  final int startIndex;
+  final int endIndex;
+  final List<String> lines;
+  final String importStatement;
+  
+  ImportBlock({
+    required this.startIndex,
+    required this.endIndex,
+    required this.lines,
+    required this.importStatement,
+  });
+}
+
 void main(List<String> args) {
   final parser = ArgParser()
     ..addFlag('help',
@@ -226,9 +241,9 @@ Examples:
   return (processed: processed, errors: errors);
 }
 
-bool _processFile(String filePath,
-    {required bool verbose,
-    String? explicitProjectName,
+bool _processFile(String filePath, {
+    required bool verbose,
+    required String? explicitProjectName,
     required bool checkMode}) {
   try {
     if (verbose) {
@@ -247,62 +262,26 @@ bool _processFile(String filePath,
     final content = file.readAsStringSync();
     final lines = content.split('\n');
 
-    // Find import lines, handling multi-line imports.
-    // First, identify all import statements and their line ranges.
-
-    final importLines = <String>[];
-    final importLineIndices = <int>[];
-    String? currentImport = null;
-    int? currentImportStartIndex = null;
-
-    for (int i = 0; i < lines.length; i++) {
+    // Extract import blocks (import statements + their associated comments)
+    final importBlocks = <ImportBlock>[];
+    final importBlockIndices = <int>[];
+    
+    int i = 0;
+    while (i < lines.length) {
       final line = lines[i].trim();
-
+      
       if (line.startsWith('import ')) {
-        // Start of a new import.
-
-        // If we were building a previous import, save it first.
-
-        if (currentImport != null && currentImportStartIndex != null) {
-          importLines.add(currentImport);
-          importLineIndices.add(currentImportStartIndex);
-        }
-
-        currentImport = lines[i];
-        currentImportStartIndex = i;
-
-        // Check if this is a single-line import (ends with semicolon).
-
-        if (line.endsWith(';')) {
-          importLines.add(currentImport);
-          importLineIndices.add(currentImportStartIndex);
-          currentImport = null;
-          currentImportStartIndex = null;
-        }
-      } else if (currentImport != null && currentImportStartIndex != null) {
-        // Continue building the multi-line import.
-
-        currentImport += '\n' + lines[i];
-
-        // Check if this line ends the import (contains semicolon).
-
-        if (line.contains(';')) {
-          importLines.add(currentImport);
-          importLineIndices.add(currentImportStartIndex);
-          currentImport = null;
-          currentImportStartIndex = null;
-        }
+        // Found an import statement, extract the block
+        final block = _extractImportBlock(lines, i);
+        importBlocks.add(block);
+        importBlockIndices.add(block.startIndex);
+        i = block.endIndex + 1; // Move to next line after the block
+      } else {
+        i++;
       }
     }
 
-    // Handle the last import if it wasn't closed.
-
-    if (currentImport != null && currentImportStartIndex != null) {
-      importLines.add(currentImport);
-      importLineIndices.add(currentImportStartIndex);
-    }
-
-    if (importLines.isEmpty) {
+    if (importBlocks.isEmpty) {
       if (verbose) {
         print('No imports found in $filePath');
       }
@@ -310,18 +289,15 @@ bool _processFile(String filePath,
     }
 
     // Get project name from pubspec.yaml.
-
     final projectName = explicitProjectName ?? _getProjectName(filePath);
 
-    // Sort imports.
+    // Sort import blocks by their import statements
+    final sortedImportBlocks = _sortImportBlocks(importBlocks, projectName);
 
-    final sortedImports = _sortImports(importLines, projectName);
-
-    // Check if imports are already sorted correctly.
-
+    // Check if imports are already sorted correctly
     bool alreadySorted = true;
-    for (int i = 0; i < importLines.length; i++) {
-      if (importLines[i].trim() != sortedImports[i].trim()) {
+    for (int j = 0; j < importBlocks.length; j++) {
+      if (importBlocks[j].importStatement.trim() != sortedImportBlocks[j].importStatement.trim()) {
         alreadySorted = false;
         break;
       }
@@ -334,66 +310,63 @@ bool _processFile(String filePath,
       return true;
     }
 
-    // Replace imports in the file.
-    // Remove all existing import lines, then insert sorted imports at the first import position.
+    // Replace import blocks in the file
+    if (importBlockIndices.isNotEmpty) {
+      // Find the bounds of the import section
+      final firstImportIndex = importBlockIndices.reduce((a, b) => a < b ? a : b);
+      final lastImportIndex = importBlockIndices.reduce((a, b) => a > b ? a : b);
+      
+      // Find the actual end of the last import block
+      final lastBlock = importBlocks[importBlockIndices.indexOf(lastImportIndex)];
+      final lastImportEndIndex = lastBlock.endIndex;
 
-    if (importLineIndices.isNotEmpty) {
-      // Find the bounds of the import section.
-
-      final firstImportIndex =
-          importLineIndices.reduce((a, b) => a < b ? a : b);
-      final lastImportIndex = importLineIndices.reduce((a, b) => a > b ? a : b);
-
-      // Find the actual end of the last import (including multi-line).
-
-      final lastImportText =
-          importLines[importLineIndices.indexOf(lastImportIndex)];
-      final lastImportEndIndex =
-          lastImportIndex + lastImportText.split('\n').length - 1;
-
-      // Look for the first non-empty line after imports to preserve spacing.
-
+      // Look for the first non-empty line after imports to preserve spacing
       int nextContentIndex = lastImportEndIndex + 1;
-      while (nextContentIndex < lines.length &&
-          lines[nextContentIndex].trim().isEmpty) {
+      while (nextContentIndex < lines.length && lines[nextContentIndex].trim().isEmpty) {
         nextContentIndex++;
       }
 
-      // Remove the import section (including any blank lines immediately after).
-
+      // Remove the import section (including any blank lines immediately after)
       int endRemovalIndex = lastImportEndIndex + 1;
-      while (endRemovalIndex < nextContentIndex &&
-          endRemovalIndex < lines.length) {
+      while (endRemovalIndex < nextContentIndex && endRemovalIndex < lines.length) {
         endRemovalIndex++;
       }
 
-      // Remove all import lines and their trailing blank lines.
-
+      // Remove all import blocks and their trailing blank lines
       lines.removeRange(firstImportIndex, endRemovalIndex);
 
-      // Insert sorted impo rts with proper spacing.
-
-      final importsWithSpacing = <String>[...sortedImports];
-
-      // Add one blank line after imports if there's content following.
-
-      if (firstImportIndex < lines.length &&
-          lines[firstImportIndex].trim().isNotEmpty) {
-        importsWithSpacing.add('');
+      // Insert sorted import blocks with proper spacing
+      final blocksWithSpacing = <String>[];
+      
+      for (int j = 0; j < sortedImportBlocks.length; j++) {
+        final block = sortedImportBlocks[j];
+        blocksWithSpacing.addAll(block.lines);
+        
+        // Add blank line between blocks if not the last one
+        if (j < sortedImportBlocks.length - 1) {
+          blocksWithSpacing.add('');
+        }
       }
 
-      lines.insertAll(firstImportIndex, importsWithSpacing);
+      // Add one blank line after imports if there's content following
+      if (firstImportIndex < lines.length && lines[firstImportIndex].trim().isNotEmpty) {
+        blocksWithSpacing.add('');
+      }
+
+      lines.insertAll(firstImportIndex, blocksWithSpacing);
     }
 
-    // Compare with original content to check if changes are needed.
-
+    // Compare with original content to check if changes are needed
     final newContent = lines.join('\n');
     final hasChanges = content != newContent;
 
     if (checkMode) {
       if (hasChanges) {
         // Provide detailed feedback about what's wrong
-        _reportImportIssues(filePath, importLines, sortedImports, verbose);
+        _reportImportIssues(filePath, 
+            importBlocks.map((b) => b.importStatement).toList(),
+            sortedImportBlocks.map((b) => b.importStatement).toList(), 
+            verbose);
         return false;
       } else {
         if (verbose) {
@@ -403,8 +376,7 @@ bool _processFile(String filePath,
       }
     }
 
-    // Fix mode: Write back to file only if there are changes.
-
+    // Fix mode: Write back to file only if there are changes
     if (hasChanges) {
       file.writeAsStringSync(newContent);
       if (verbose) {
@@ -694,4 +666,77 @@ ImportCategory _getImportCategory(String importLine, String projectName) {
   } else {
     return ImportCategory.relative;
   }
+}
+
+// Extract an import block starting from the given index
+ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
+  final blockLines = <String>[];
+  int currentIndex = startIndex;
+  String importStatement = '';
+  bool importComplete = false;
+  
+  // First, collect all lines that are part of the import statement
+  while (currentIndex < lines.length && !importComplete) {
+    final line = lines[currentIndex];
+    blockLines.add(line);
+    
+    if (line.trim().startsWith('import ')) {
+      importStatement = line;
+      // Check if this is a single-line import
+      if (line.trim().endsWith(';')) {
+        importComplete = true;
+      }
+    } else if (importStatement.isNotEmpty) {
+      // Continue building multi-line import
+      importStatement += '\n' + line;
+      if (line.trim().contains(';')) {
+        importComplete = true;
+      }
+    }
+    
+    currentIndex++;
+  }
+  
+  // Now look for associated comments that should move with this import
+  // Comments that immediately precede the import (no empty line) should move with it
+  int commentStartIndex = startIndex - 1;
+  while (commentStartIndex >= 0) {
+    final line = lines[commentStartIndex];
+    final trimmedLine = line.trim();
+    
+    if (trimmedLine.isEmpty) {
+      // Found empty line, stop looking for comments
+      break;
+    } else if (trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
+      // Found a comment, add it to the beginning of the block
+      blockLines.insert(0, line);
+      commentStartIndex--;
+    } else {
+      // Found non-comment, non-empty line, stop
+      break;
+    }
+  }
+  
+  return ImportBlock(
+    startIndex: commentStartIndex + 1,
+    endIndex: currentIndex - 1,
+    lines: blockLines,
+    importStatement: importStatement,
+  );
+}
+
+// Sort import blocks by their import statements
+List<ImportBlock> _sortImportBlocks(List<ImportBlock> blocks, String projectName) {
+  // Extract just the import statements for sorting
+  final importStatements = blocks.map((b) => b.importStatement).toList();
+  final sortedImportStatements = _sortImports(importStatements, projectName);
+  
+  // Create a map from import statement to block for easy lookup
+  final blockMap = <String, ImportBlock>{};
+  for (final block in blocks) {
+    blockMap[block.importStatement] = block;
+  }
+  
+  // Return blocks in the sorted order
+  return sortedImportStatements.map((import) => blockMap[import]).whereType<ImportBlock>().toList();
 }
