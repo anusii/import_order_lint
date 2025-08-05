@@ -10,12 +10,13 @@
 
 # Import Order Lint
 
-An import ordering tool for Dart and Flutter projects that enforces consistent import organization following the [Flutter Style Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
+An import ordering tool for Dart and Flutter projects that enforces
+consistent import organization following the [Flutter Style
+Guide](https://survivor.togaware.com/gnulinux/flutter-style-imports.html).
 
 The package is published on [pub.dev](https://pub.dev/packages/import_order_lint).
 
 ## Features
-
 
 - 🔧 **Enforces consistent import ordering** across your Dart/Flutter project
 - 📚 **Groups imports into categories**:
@@ -30,6 +31,21 @@ The package is published on [pub.dev](https://pub.dev/packages/import_order_lint
 - 📁 **Smart defaults** - Defaults to `lib` directory, recursive by default
 - ✅ **CI/CD ready** - Exit codes for automated pipelines
 
+## Installation
+
+Install a global executable `import_order`:
+
+```bash
+dart pub global activate import_order_lint
+```
+
+Or add the package to your `pubspec.yaml`:
+
+```yaml
+dev_dependencies:
+  import_order_lint: ^0.2.0
+```
+
 ## 🎯 Quick Start
 
 ```bash
@@ -41,15 +57,6 @@ dart run import_order_lint:import_order --set-exit-if-changed
 ```
 
 **Auto-detects your project**, **defaults to lib directory**, and **provides proper CI/CD exit codes**!
-
-## Installation
-
-Add the package to your `pubspec.yaml`:
-
-```yaml
-dev_dependencies:
-  import_order_lint: ^0.2.0
-```
 
 ## Usage
 
