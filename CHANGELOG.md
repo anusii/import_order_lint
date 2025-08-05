@@ -11,6 +11,14 @@ utilised by the flutter version_widget package.
 The package is available from
 [pub.dev](https://pub.dev/packages/import_order_lint).
 
+## 0.2.1 Comment Preservation Fix
+
++ **FIX**: Preserve comments associated with imports during reordering [0.2.1 20250130 atangster]
+  - Comments that immediately precede imports (no empty line) now move with their imports
+  - Multi-line comments are preserved and move with their associated imports
+  - Comments with empty lines after them stay in their original position
+  - Fixes GitHub issue #15: "Comments in the import section are lost with a import_order fix"
+
 ## 0.2.0 Standalone Tool Architecture (BREAKING CHANGES)
 
 + **BREAKING**: Migrate from custom_lint plugin to standalone ergonomic tool [0.2.0 20250130 atangster]

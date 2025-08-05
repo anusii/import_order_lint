@@ -1,4 +1,4 @@
-// Test file for import ordering with comments
+// Test file for comment preservation in import ordering
 ///
 // Time-stamp: <Thursday 2025-01-30 08:36:00 +1100 Graham Williams>
 ///
@@ -25,28 +25,28 @@
 
 library;
 
-import 'dart:async';
-
-import 'dart:convert';
-
-// These are Dart core imports - INTENTIONALLY OUT OF ORDER for testing
 import 'package:flutter/material.dart';
 
 import 'package:example/models/user.dart';
 
+// This comment should move with the import below (no empty line)
 import 'package:example/widgets/session_widget.dart';
 
-import 'package:riodm/riodm.dart';
+import 'package:notepod/notepod.dart';
 
+// Comment to test import_order_lint
+import 'package:notepod/utils/is_desktop.dart';
+
+// Multi-line comment
+// that should move with the import
 import 'package:solidpod/solidpod.dart'
-    // These are the exact functions we need
     show
       GrantPermissionUrl,
       getWebId,
       readPod;
 
-import '../lib/utils.dart';
+import 'package:window_manager/window_manager.dart';
 
 // void main() {
-//   print('Testing import ordering with comments preservation');
-// }
+//   print('Testing comment preservation in import ordering');
+// } 
