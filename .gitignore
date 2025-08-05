@@ -1,7 +1,3 @@
-# For `dart pub publish`:
-Makefile
-support/
-
 # Miscellaneous
 *.class
 *.log
