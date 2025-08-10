@@ -11,6 +11,15 @@ utilised by the flutter version_widget package.
 The package is available from
 [pub.dev](https://pub.dev/packages/import_order_lint).
 
+## 0.2.2 Import Spacing Fix
+
++ **FIX**: Correct spacing between import groups to follow Flutter style guide [0.2.2 20251008 atangster]
+  - Fix bug where blank lines were added between every import instead of only between categories
+  - Remove early exit logic that bypassed spacing checks when imports were correctly ordered
+  - Ensure blank lines only appear between different import categories (dart, flutter, external, project, relative)
+  - No blank lines within the same import category (e.g., between external packages)
+  - Fixes GitHub issue #17: "Import order fix is adding extra spaces"
+
 ## 0.2.1 Comment Preservation Fix
 
 + **FIX**: Preserve comments associated with imports during reordering [0.2.1 20250130 atangster]
