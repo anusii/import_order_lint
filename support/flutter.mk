@@ -75,7 +75,7 @@ help::
 
 .PHONY: chrome
 chrome:
-	flutter run -d chrome
+	flutter run -d chrome --release
 
 # 20220503 gjw The following fails if the target files already exist -
 # just needs to be run once.
@@ -388,13 +388,13 @@ publish:
 .PHONY: import_order
 import_order:
 	@echo "Dart: CHECK IMPORT ORDER"
-	dart run custom_lint
+	import_order --check
 	@echo $(SEPARATOR)
 
 .PHONY: import_order_fix
 import_order_fix:
 	@echo "Dart: FIX IMPORT ORDER"
-	fix_imports --project-name=$(APP) -r lib
+	import_order
 	@echo $(SEPARATOR)
 
 ### TODO THESE SHOULD BE CHECKED AND CLEANED UP
