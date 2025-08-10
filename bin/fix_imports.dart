@@ -48,7 +48,7 @@ class ImportBlock {
   final int endIndex;
   final List<String> lines;
   final String importStatement;
-  
+
   ImportBlock({
     required this.startIndex,
     required this.endIndex,
@@ -147,8 +147,10 @@ void main(List<String> args) {
       // In check mode, "errors" means files that need fixing.
 
       if (errors.isNotEmpty) {
-        print('\n📝 Summary: Found import ordering issues in ${errors.length} file(s).');
-        print('💡 To fix these issues, run the same command without --set-exit-if-changed');
+        print(
+            '\n📝 Summary: Found import ordering issues in ${errors.length} file(s).');
+        print(
+            '💡 To fix these issues, run the same command without --set-exit-if-changed');
         exit(1);
       } else {
         print(
@@ -242,8 +244,8 @@ Examples:
   return (processed: processed, errors: errors);
 }
 
-bool _processFile(String filePath, {
-    required bool verbose,
+bool _processFile(String filePath,
+    {required bool verbose,
     required String? explicitProjectName,
     required bool checkMode}) {
   try {
@@ -267,18 +269,18 @@ bool _processFile(String filePath, {
 
     final importBlocks = <ImportBlock>[];
     final importBlockIndices = <int>[];
-    
+
     int i = 0;
     while (i < lines.length) {
       final line = lines[i].trim();
-      
+
       if (line.startsWith('import ')) {
         // Found an import statement, extract the block.
 
         final block = _extractImportBlock(lines, i);
         importBlocks.add(block);
         importBlockIndices.add(block.startIndex);
-        i = block.endIndex + 1; 
+        i = block.endIndex + 1;
       } else {
         i++;
       }
@@ -306,25 +308,30 @@ bool _processFile(String filePath, {
     if (importBlockIndices.isNotEmpty) {
       // Find the bounds of the import section.
 
-      final firstImportIndex = importBlockIndices.reduce((a, b) => a < b ? a : b);
-      final lastImportIndex = importBlockIndices.reduce((a, b) => a > b ? a : b);
-      
+      final firstImportIndex =
+          importBlockIndices.reduce((a, b) => a < b ? a : b);
+      final lastImportIndex =
+          importBlockIndices.reduce((a, b) => a > b ? a : b);
+
       // Find the actual end of the last import block.
 
-      final lastBlock = importBlocks[importBlockIndices.indexOf(lastImportIndex)];
+      final lastBlock =
+          importBlocks[importBlockIndices.indexOf(lastImportIndex)];
       final lastImportEndIndex = lastBlock.endIndex;
 
       // Look for the first non-empty line after imports to preserve spacing.
 
       int nextContentIndex = lastImportEndIndex + 1;
-      while (nextContentIndex < lines.length && lines[nextContentIndex].trim().isEmpty) {
+      while (nextContentIndex < lines.length &&
+          lines[nextContentIndex].trim().isEmpty) {
         nextContentIndex++;
       }
 
       // Remove the import section (including any blank lines immediately after).
 
       int endRemovalIndex = lastImportEndIndex + 1;
-      while (endRemovalIndex < nextContentIndex && endRemovalIndex < lines.length) {
+      while (endRemovalIndex < nextContentIndex &&
+          endRemovalIndex < lines.length) {
         endRemovalIndex++;
       }
 
@@ -335,17 +342,19 @@ bool _processFile(String filePath, {
       // Insert sorted import blocks with proper spacing.
 
       final blocksWithSpacing = <String>[];
-      
+
       for (int j = 0; j < sortedImportBlocks.length; j++) {
         final block = sortedImportBlocks[j];
         blocksWithSpacing.addAll(block.lines);
-        
+
         // Add blank line between blocks only if they belong to different categories.
 
         if (j < sortedImportBlocks.length - 1) {
-          final currentCategory = _getImportCategory(block.importStatement, projectName);
-          final nextCategory = _getImportCategory(sortedImportBlocks[j + 1].importStatement, projectName);
-          
+          final currentCategory =
+              _getImportCategory(block.importStatement, projectName);
+          final nextCategory = _getImportCategory(
+              sortedImportBlocks[j + 1].importStatement, projectName);
+
           if (currentCategory != nextCategory) {
             blocksWithSpacing.add('');
           }
@@ -354,7 +363,8 @@ bool _processFile(String filePath, {
 
       // Add one blank line after imports if there's content following.
 
-      if (firstImportIndex < lines.length && lines[firstImportIndex].trim().isNotEmpty) {
+      if (firstImportIndex < lines.length &&
+          lines[firstImportIndex].trim().isNotEmpty) {
         blocksWithSpacing.add('');
       }
 
@@ -370,9 +380,10 @@ bool _processFile(String filePath, {
       if (hasChanges) {
         // Provide detailed feedback about what's wrong.
 
-        _reportImportIssues(filePath, 
+        _reportImportIssues(
+            filePath,
             importBlocks.map((b) => b.importStatement).toList(),
-            sortedImportBlocks.map((b) => b.importStatement).toList(), 
+            sortedImportBlocks.map((b) => b.importStatement).toList(),
             verbose);
         return false;
       } else {
@@ -511,63 +522,71 @@ List<String> _sortImports(List<String> imports, String projectName) {
   return result;
 }
 
-void _reportImportIssues(String filePath, List<String> originalImports, 
+void _reportImportIssues(String filePath, List<String> originalImports,
     List<String> sortedImports, bool verbose) {
   print('❌ Import ordering issues found in $filePath:');
-  
+
   // Compare line by line to find specific issues.
 
   final issues = <String>[];
-  
+
   // Filter out blank lines for comparison.
 
-  final originalNonEmpty = originalImports.where((line) => line.trim().isNotEmpty).toList();
-  final sortedNonEmpty = sortedImports.where((line) => line.trim().isNotEmpty).toList();
-  
+  final originalNonEmpty =
+      originalImports.where((line) => line.trim().isNotEmpty).toList();
+  final sortedNonEmpty =
+      sortedImports.where((line) => line.trim().isNotEmpty).toList();
+
   // Check for order issues.
 
-  for (int i = 0; i < originalNonEmpty.length && i < sortedNonEmpty.length; i++) {
+  for (int i = 0;
+      i < originalNonEmpty.length && i < sortedNonEmpty.length;
+      i++) {
     final original = originalNonEmpty[i].trim();
     final sorted = sortedNonEmpty[i].trim();
-    
+
     if (original != sorted) {
       final originalPath = _extractImportPath(original);
       final sortedPath = _extractImportPath(sorted);
-      
+
       if (originalPath != sortedPath) {
-        final originalCategory = _getCategoryName(_getImportCategory(original, ''));
+        final originalCategory =
+            _getCategoryName(_getImportCategory(original, ''));
         final sortedCategory = _getCategoryName(_getImportCategory(sorted, ''));
-        
+
         if (originalCategory != sortedCategory) {
-          issues.add('   • $originalCategory import \'$originalPath\' should come after $sortedCategory imports');
+          issues.add(
+              '   • $originalCategory import \'$originalPath\' should come after $sortedCategory imports');
         } else {
-          issues.add('   • Import \'$originalPath\' should come before \'$sortedPath\' (alphabetical order)');
+          issues.add(
+              '   • Import \'$originalPath\' should come before \'$sortedPath\' (alphabetical order)');
         }
         break; // Show first major issue to avoid overwhelming output
       }
     }
   }
-  
+
   // Check for missing blank lines between groups.
 
   if (_hasMissingGroupSeparation(originalImports)) {
     issues.add('   • Missing blank lines between different import groups');
   }
-  
+
   // Check for extra imports or missing imports.
 
   if (originalNonEmpty.length != sortedNonEmpty.length) {
-    issues.add('   • Import count mismatch - some imports may be duplicated or missing');
+    issues.add(
+        '   • Import count mismatch - some imports may be duplicated or missing');
   }
-  
+
   if (issues.isEmpty) {
     issues.add('   • Import order needs to be reorganized');
   }
-  
+
   for (final issue in issues) {
     print(issue);
   }
-  
+
   if (verbose) {
     print('   Expected order:');
     print('     1. Dart SDK imports (dart:*)');
@@ -582,7 +601,7 @@ void _reportImportIssues(String filePath, List<String> originalImports,
 String _extractImportPath(String importLine) {
   final singleQuoteMatch = importLine.indexOf("'");
   final doubleQuoteMatch = importLine.indexOf('"');
-  
+
   if (singleQuoteMatch >= 0) {
     final startIndex = singleQuoteMatch + 1;
     final endIndex = importLine.indexOf("'", startIndex);
@@ -590,7 +609,7 @@ String _extractImportPath(String importLine) {
       return importLine.substring(startIndex, endIndex);
     }
   } else if (doubleQuoteMatch >= 0) {
-    final startIndex = doubleQuoteMatch + 1; 
+    final startIndex = doubleQuoteMatch + 1;
     final endIndex = importLine.indexOf('"', startIndex);
     if (endIndex > startIndex) {
       return importLine.substring(startIndex, endIndex);
@@ -618,22 +637,22 @@ bool _hasMissingGroupSeparation(List<String> imports) {
   // Check if there are imports from different categories without blank line separation.
 
   ImportCategory? lastCategory;
-  
+
   for (final importLine in imports) {
     if (importLine.trim().isEmpty) {
-      lastCategory = null; 
+      lastCategory = null;
       continue;
     }
-    
+
     if (importLine.trim().startsWith('import ')) {
       final category = _getImportCategory(importLine, '');
       if (lastCategory != null && lastCategory != category) {
-        return true; 
+        return true;
       }
       lastCategory = category;
     }
   }
-  
+
   return false;
 }
 
@@ -689,13 +708,13 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
   int currentIndex = startIndex;
   String importStatement = '';
   bool importComplete = false;
-  
+
   // First, collect all lines that are part of the import statement.
 
   while (currentIndex < lines.length && !importComplete) {
     final line = lines[currentIndex];
     blockLines.add(line);
-    
+
     if (line.trim().startsWith('import ')) {
       importStatement = line;
       // Check if this is a single-line import.
@@ -711,10 +730,10 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
         importComplete = true;
       }
     }
-    
+
     currentIndex++;
   }
-  
+
   // Now look for associated comments that should move with this import.
   // Comments that immediately precede the import (no empty line) should move with it.
 
@@ -722,7 +741,7 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
   while (commentStartIndex >= 0) {
     final line = lines[commentStartIndex];
     final trimmedLine = line.trim();
-    
+
     if (trimmedLine.isEmpty) {
       // Found empty line, stop looking for comments.
 
@@ -738,7 +757,7 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
       break;
     }
   }
-  
+
   return ImportBlock(
     startIndex: commentStartIndex + 1,
     endIndex: currentIndex - 1,
@@ -749,20 +768,24 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
 
 // Sort import blocks by their import statements.
 
-List<ImportBlock> _sortImportBlocks(List<ImportBlock> blocks, String projectName) {
+List<ImportBlock> _sortImportBlocks(
+    List<ImportBlock> blocks, String projectName) {
   // Extract just the import statements for sorting.
 
   final importStatements = blocks.map((b) => b.importStatement).toList();
   final sortedImportStatements = _sortImports(importStatements, projectName);
-  
+
   // Create a map from import statement to block for easy lookup.
 
   final blockMap = <String, ImportBlock>{};
   for (final block in blocks) {
     blockMap[block.importStatement] = block;
   }
-  
+
   // Return blocks in the sorted order.
 
-  return sortedImportStatements.map((import) => blockMap[import]).whereType<ImportBlock>().toList();
+  return sortedImportStatements
+      .map((import) => blockMap[import])
+      .whereType<ImportBlock>()
+      .toList();
 }
