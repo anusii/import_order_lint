@@ -13,7 +13,7 @@ The package is available from
 
 ## 0.2.2 Import Spacing Fix
 
-+ **FIX**: Correct spacing between import groups to follow Flutter style guide [0.2.2 20250130 atangster]
++ **FIX**: Correct spacing between import groups to follow Flutter style guide [0.2.2 20251008 atangster]
   - Fix bug where blank lines were added between every import instead of only between categories
   - Remove early exit logic that bypassed spacing checks when imports were correctly ordered
   - Ensure blank lines only appear between different import categories (dart, flutter, external, project, relative)
