@@ -298,22 +298,8 @@ bool _processFile(String filePath, {
 
     final sortedImportBlocks = _sortImportBlocks(importBlocks, projectName);
 
-    // Check if imports are already sorted correctly.
-
-    bool alreadySorted = true;
-    for (int j = 0; j < importBlocks.length; j++) {
-      if (importBlocks[j].importStatement.trim() != sortedImportBlocks[j].importStatement.trim()) {
-        alreadySorted = false;
-        break;
-      }
-    }
-
-    if (alreadySorted) {
-      if (verbose) {
-        print('Imports already correctly ordered in $filePath');
-      }
-      return true;
-    }
+    // NOTE: We'll check if changes are needed after applying spacing logic
+    // This ensures that both import order AND spacing are correct
 
     // Replace import blocks in the file.
 
@@ -354,10 +340,15 @@ bool _processFile(String filePath, {
         final block = sortedImportBlocks[j];
         blocksWithSpacing.addAll(block.lines);
         
-        // Add blank line between blocks if not the last one.
+        // Add blank line between blocks only if they belong to different categories.
 
         if (j < sortedImportBlocks.length - 1) {
-          blocksWithSpacing.add('');
+          final currentCategory = _getImportCategory(block.importStatement, projectName);
+          final nextCategory = _getImportCategory(sortedImportBlocks[j + 1].importStatement, projectName);
+          
+          if (currentCategory != nextCategory) {
+            blocksWithSpacing.add('');
+          }
         }
       }
 
