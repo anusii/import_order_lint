@@ -43,7 +43,7 @@ Or add the package to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  import_order_lint: ^0.2.0
+  import_order_lint: ^0.2.2
 ```
 
 ## 🎯 Quick Start
