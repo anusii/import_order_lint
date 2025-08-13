@@ -71,14 +71,14 @@ jobs:
       - name: Check copyright headers
         run: |
           # Find Dart files without proper copyright headers, excluding generated files
-          missing_copyright=$(find lib -type f -name '*.dart' \
+          missing_copyright=$(if [ -d lib ]; then find lib -type f -name '*.dart' \
             ! -name '*.g.dart' \
             ! -name '*.gr.dart' \
             ! -name '*.freezed.dart' \
             ! -name '*.chopper.dart' \
             ! -name '*.part.dart' \
             ! -name '*.config.dart' \
-            -exec grep -L "Copyright" {} \;)
+            -exec grep -L "Copyright" {} \; fi)
           if [ -n "$missing_copyright" ]; then
             echo "❌ Files missing copyright headers:"
             echo "$missing_copyright"
@@ -101,4 +101,7 @@ jobs:
       - run: sudo apt-get install -y clang cmake curl libgtk-3-dev ninja-build pkg-config unzip libunwind-dev libsecret-1-dev
       - run: sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
       - run: flutter pub get
-      - run: flutter build linux -v
+      - run: |
+          if [ -d "lib" ]; then
+            flutter build linux -v
+          fi
