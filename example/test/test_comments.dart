@@ -25,12 +25,9 @@
 
 library;
 
-import 'dart:async';
 
-import 'dart:convert';
 
 // These are Dart core imports - INTENTIONALLY OUT OF ORDER for testing
-import 'package:flutter/material.dart';
 
 import 'package:example/models/user.dart';
 
@@ -45,7 +42,7 @@ import 'package:solidpod/solidpod.dart'
         getWebId,
         readPod;
 
-import '../lib/utils.dart';
+import 'package:example/utils.dart';
 
 // void main() {
 //   print('Testing import ordering with comments preservation');

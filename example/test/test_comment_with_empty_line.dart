@@ -25,7 +25,6 @@
 
 library;
 
-import 'package:flutter/material.dart';
 
 import 'package:notepod/notepod.dart';
 
