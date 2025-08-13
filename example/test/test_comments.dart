@@ -41,9 +41,9 @@ import 'package:riodm/riodm.dart';
 import 'package:solidpod/solidpod.dart'
     // These are the exact functions we need
     show
-      GrantPermissionUrl,
-      getWebId,
-      readPod;
+        GrantPermissionUrl,
+        getWebId,
+        readPod;
 
 import '../lib/utils.dart';
 

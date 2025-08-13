@@ -35,4 +35,4 @@ import 'package:window_manager/window_manager.dart';
 
 // void main() {
 //   print('Testing comment with empty line scenario');
-// } 
+// }

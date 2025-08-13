@@ -40,13 +40,10 @@ import 'package:notepod/utils/is_desktop.dart';
 // Multi-line comment
 // that should move with the import
 import 'package:solidpod/solidpod.dart'
-    show
-      GrantPermissionUrl,
-      getWebId,
-      readPod;
+    show GrantPermissionUrl, getWebId, readPod;
 
 import 'package:window_manager/window_manager.dart';
 
 // void main() {
 //   print('Testing comment preservation in import ordering');
-// } 
+// }
