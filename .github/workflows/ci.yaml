@@ -78,7 +78,7 @@ jobs:
             ! -name '*.chopper.dart' \
             ! -name '*.part.dart' \
             ! -name '*.config.dart' \
-            -exec grep -L "Copyright" {} \; fi)
+            -exec grep -L "Copyright" {} \; fi)\;
           if [ -n "$missing_copyright" ]; then
             echo "❌ Files missing copyright headers:"
             echo "$missing_copyright"
