@@ -61,24 +61,24 @@ jobs:
 
   copyright:
     runs-on: ubuntu-latest
+    if: ${{ hashFiles('lib/**') != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{env.FLUTTER_VERSION}}
-      - run: flutter pub get
       - name: Check copyright headers
         run: |
           # Find Dart files without proper copyright headers, excluding generated files
-          missing_copyright=$(if [ -d lib ]; then find lib -type f -name '*.dart' \
+          missing_copyright=$(find lib -type f -name '*.dart' \
             ! -name '*.g.dart' \
             ! -name '*.gr.dart' \
             ! -name '*.freezed.dart' \
             ! -name '*.chopper.dart' \
             ! -name '*.part.dart' \
             ! -name '*.config.dart' \
-            -exec grep -L "Copyright" {} \; fi)\;
+            -exec grep -L "Copyright" {} \;
           if [ -n "$missing_copyright" ]; then
             echo "❌ Files missing copyright headers:"
             echo "$missing_copyright"
@@ -91,6 +91,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    if: ${{ hashFiles('lib/**') != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
