@@ -43,7 +43,7 @@ library;
 //       readPod;
 
 // TEST CASE 4: External package with API endpoints
-// import 'package:riodm/riodm.dart';
+// import 'package:solidui/solidui.dart';
 // import 'package:riopod/apis/rest_api.dart';
 
 // TEST CASE 5: App-specific imports with different patterns

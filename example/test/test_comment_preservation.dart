@@ -31,10 +31,10 @@ import 'package:example/models/user.dart';
 // This comment should move with the import below (no empty line)
 import 'package:example/widgets/session_widget.dart';
 
-import 'package:notepod/notepod.dart';
+import 'package:markdown_widget_builder/markdown_widget_builder.dart';
 
 // Comment to test import_order_lint
-import 'package:notepod/utils/is_desktop.dart';
+import 'package:markdown_widget_builder/src/utils/file_ops.dart';
 
 // Multi-line comment
 // that should move with the import

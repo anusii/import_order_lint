@@ -26,9 +26,9 @@
 library;
 
 
-import 'package:notepod/notepod.dart';
+import 'package:markdown_widget_builder/markdown_widget_builder.dart';
 
-import 'package:notepod/utils/is_desktop.dart';
+import 'package:markdown_widget_builder/src/utils/file_ops.dart';
 
 import 'package:window_manager/window_manager.dart';
 
