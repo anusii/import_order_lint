@@ -56,29 +56,10 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
-  riodm:
-    git:
-      url: git@github.com:anusii/riodm.git
-      ref: dev
-  solidpod:
-    git:
-      url: https://github.com/anusii/solidpod
-      ref: dev
-  notepod:
-    git:
-      url: https://github.com/anusii/notepod
-      ref: dev
+  solidui: ^0.3.2
+  solidpod: ^0.12.0
+  markdown_widget_builder: ^0.0.10
   window_manager: ^0.5.1
-dependency_overrides:
-  solidpod:
-    git:
-      url: https://github.com/anusii/solidpod
-      ref: dev
-  solidui:
-    git:
-      url: https://github.com/anusii/solidui
-      ref: dev
-  uuid: ^4.5.2
 
 flutter:
 
