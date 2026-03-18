@@ -74,7 +74,7 @@ void main(List<String> args) {
     ..addFlag('set-exit-if-changed',
         negatable: false,
         help:
-            'Return exit code 1 if imports would be changed (like dart format)')
+        'Return exit code 1 if imports would be changed (like dart format)')
     ..addFlag('dry-run',
         negatable: false,
         help: 'Same as --check, show what would be fixed without fixing')
@@ -109,9 +109,9 @@ void main(List<String> args) {
     // If an explicit project name is provided, use it.
 
     final projectName =
-        explicitProjectName != null && explicitProjectName.isNotEmpty
-            ? explicitProjectName
-            : null;
+    explicitProjectName != null && explicitProjectName.isNotEmpty
+        ? explicitProjectName
+        : null;
 
     for (final filePath in filePaths) {
       final fileOrDir = FileSystemEntity.typeSync(filePath);
@@ -211,12 +211,12 @@ Examples:
 }
 
 ({List<String> processed, List<String> errors}) _processDirectory(
-  String dirPath, {
-  required bool recursive,
-  required bool verbose,
-  String? explicitProjectName,
-  required bool checkMode,
-}) {
+    String dirPath, {
+      required bool recursive,
+      required bool verbose,
+      String? explicitProjectName,
+      required bool checkMode,
+    }) {
   final processed = <String>[];
   final errors = <String>[];
 
@@ -246,8 +246,8 @@ Examples:
 
 bool _processFile(String filePath,
     {required bool verbose,
-    required String? explicitProjectName,
-    required bool checkMode}) {
+      required String? explicitProjectName,
+      required bool checkMode}) {
   try {
     if (verbose) {
       print('Processing: $filePath');
@@ -277,7 +277,11 @@ bool _processFile(String filePath,
       if (line.startsWith('import ')) {
         // Found an import statement, extract the block.
 
-        final block = _extractImportBlock(lines, i);
+        final block = _extractImportBlock(
+          lines,
+          i,
+          lookPastBlankLines: importBlocks.isNotEmpty,
+        );
         importBlocks.add(block);
         importBlockIndices.add(block.startIndex);
         i = block.endIndex + 1;
@@ -309,14 +313,14 @@ bool _processFile(String filePath,
       // Find the bounds of the import section.
 
       final firstImportIndex =
-          importBlockIndices.reduce((a, b) => a < b ? a : b);
+      importBlockIndices.reduce((a, b) => a < b ? a : b);
       final lastImportIndex =
-          importBlockIndices.reduce((a, b) => a > b ? a : b);
+      importBlockIndices.reduce((a, b) => a > b ? a : b);
 
       // Find the actual end of the last import block.
 
       final lastBlock =
-          importBlocks[importBlockIndices.indexOf(lastImportIndex)];
+      importBlocks[importBlockIndices.indexOf(lastImportIndex)];
       final lastImportEndIndex = lastBlock.endIndex;
 
       // Look for the first non-empty line after imports to preserve spacing.
@@ -351,7 +355,7 @@ bool _processFile(String filePath,
 
         if (j < sortedImportBlocks.length - 1) {
           final currentCategory =
-              _getImportCategory(block.importStatement, projectName);
+          _getImportCategory(block.importStatement, projectName);
           final nextCategory = _getImportCategory(
               sortedImportBlocks[j + 1].importStatement, projectName);
 
@@ -533,15 +537,15 @@ void _reportImportIssues(String filePath, List<String> originalImports,
   // Filter out blank lines for comparison.
 
   final originalNonEmpty =
-      originalImports.where((line) => line.trim().isNotEmpty).toList();
+  originalImports.where((line) => line.trim().isNotEmpty).toList();
   final sortedNonEmpty =
-      sortedImports.where((line) => line.trim().isNotEmpty).toList();
+  sortedImports.where((line) => line.trim().isNotEmpty).toList();
 
   // Check for order issues.
 
   for (int i = 0;
-      i < originalNonEmpty.length && i < sortedNonEmpty.length;
-      i++) {
+  i < originalNonEmpty.length && i < sortedNonEmpty.length;
+  i++) {
     final original = originalNonEmpty[i].trim();
     final sorted = sortedNonEmpty[i].trim();
 
@@ -551,7 +555,7 @@ void _reportImportIssues(String filePath, List<String> originalImports,
 
       if (originalPath != sortedPath) {
         final originalCategory =
-            _getCategoryName(_getImportCategory(original, ''));
+        _getCategoryName(_getImportCategory(original, ''));
         final sortedCategory = _getCategoryName(_getImportCategory(sorted, ''));
 
         if (originalCategory != sortedCategory) {
@@ -682,7 +686,7 @@ ImportCategory _getImportCategory(String importLine, String projectName) {
     final parts = importLine.trim().split(' ');
     if (parts.length >= 2) {
       String path =
-          parts[1].replaceAll("'", "").replaceAll('"', '').replaceAll(';', '');
+      parts[1].replaceAll("'", "").replaceAll('"', '').replaceAll(';', '');
       importPath = path;
     }
   }
@@ -702,8 +706,17 @@ ImportCategory _getImportCategory(String importLine, String projectName) {
 }
 
 // Extract an import block starting from the given index.
+//
+// When [lookPastBlankLines] is true, the backward scan for associated comments
+// will skip over blank lines to find comments that belong to this import.
+// This should only be enabled for non-first imports to avoid capturing
+// file-level header comments that precede the import section.
 
-ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
+ImportBlock _extractImportBlock(
+    List<String> lines,
+    int startIndex, {
+      bool lookPastBlankLines = false,
+    }) {
   final blockLines = <String>[];
   int currentIndex = startIndex;
   String importStatement = '';
@@ -735,7 +748,9 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
   }
 
   // Now look for associated comments that should move with this import.
-  // Comments that immediately precede the import (no empty line) should move with it.
+  // Comments that immediately precede the import (no empty line) should move
+  // with it. When lookPastBlankLines is set, also capture comments separated
+  // from this import by blank lines (within the import section).
 
   int commentStartIndex = startIndex - 1;
   while (commentStartIndex >= 0) {
@@ -743,8 +758,24 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
     final trimmedLine = line.trim();
 
     if (trimmedLine.isEmpty) {
-      // Found empty line, stop looking for comments.
+      if (lookPastBlankLines) {
+        // Peek past blank lines to see if there is a comment above.
 
+        int peekIndex = commentStartIndex - 1;
+        while (peekIndex >= 0 && lines[peekIndex].trim().isEmpty) {
+          peekIndex--;
+        }
+        if (peekIndex >= 0 &&
+            (lines[peekIndex].trim().startsWith('//') ||
+                lines[peekIndex].trim().startsWith('/*'))) {
+          // There is a comment above the blank line(s); preserve the
+          // blank line so the original spacing around the comment is kept.
+
+          blockLines.insert(0, line);
+          commentStartIndex--;
+          continue;
+        }
+      }
       break;
     } else if (trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
       // Found a comment, add it to the beginning of the block.

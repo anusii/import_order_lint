@@ -370,6 +370,84 @@ void main() {}
       await _testImportFixWithBinary(input, expected, 'with_as_clauses');
     });
 
+    test('Comment separated from import by blank line is preserved', () async {
+      const input = '''
+library;
+
+//General imports.
+
+import 'package:flutter/material.dart';
+
+// This comment should not go missing.
+
+import 'package:test_project/models/vehicle.dart';
+import 'package:test_project/widgets/primitives.dart';
+import 'package:test_project/widgets/tiles.dart';
+
+class DoorsSection extends StatelessWidget {}
+
+''';
+
+      const expected = '''
+library;
+
+//General imports.
+
+import 'package:flutter/material.dart';
+
+// This comment should not go missing.
+
+import 'package:test_project/models/vehicle.dart';
+import 'package:test_project/widgets/primitives.dart';
+import 'package:test_project/widgets/tiles.dart';
+
+class DoorsSection extends StatelessWidget {}
+
+''';
+
+      await _testImportFixWithBinary(
+          input, expected, 'comment_across_blank_line');
+    });
+
+    test('Multiple comments separated by blank lines are preserved', () async {
+      const input = '''
+
+import 'dart:io';
+
+// External packages.
+
+import 'package:http/http.dart';
+
+// Project-specific imports.
+
+import 'package:test_project/models/user.dart';
+import 'package:test_project/utils.dart';
+
+void main() {}
+
+''';
+
+      const expected = '''
+
+import 'dart:io';
+
+// External packages.
+
+import 'package:http/http.dart';
+
+// Project-specific imports.
+
+import 'package:test_project/models/user.dart';
+import 'package:test_project/utils.dart';
+
+void main() {}
+
+''';
+
+      await _testImportFixWithBinary(
+          input, expected, 'multiple_comments_across_blank_lines');
+    });
+
     test('File with no code duplication - ensures fix works', () async {
       // This test specifically validates that the class definition only appears once.
 
