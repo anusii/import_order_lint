@@ -91,9 +91,15 @@ void main(List<String> args) {
 
     final bool verbose = argResults['verbose'] as bool;
     final bool recursive = argResults['recursive'] as bool;
-    final bool checkMode = argResults['check'] as bool ||
-        argResults['dry-run'] as bool ||
-        argResults['set-exit-if-changed'] as bool;
+    final bool isCheck = argResults['check'] as bool;
+    final bool isDryRun = argResults['dry-run'] as bool;
+    final bool isSetExitIfChanged = argResults['set-exit-if-changed'] as bool;
+    final bool checkMode = isCheck || isDryRun || isSetExitIfChanged;
+    final String checkFlag = isCheck
+        ? '--check'
+        : isDryRun
+            ? '--dry-run'
+            : '--set-exit-if-changed';
     final String? explicitProjectName = argResults['project-name'] as String?;
     final List<String> filePaths = argResults.rest;
 
@@ -150,7 +156,7 @@ void main(List<String> args) {
         print(
             '\n📝 Summary: Found import ordering issues in ${errors.length} file(s).');
         print(
-            '💡 To fix these issues, run the same command without --set-exit-if-changed');
+            '💡 To fix these issues, run the same command without $checkFlag');
         exit(1);
       } else {
         print(
