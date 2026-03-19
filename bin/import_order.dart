@@ -84,9 +84,11 @@ void main(List<String> args) {
     final newArgs = <String>[];
 
     if (argResults['verbose'] as bool) newArgs.add('--verbose');
-    if (argResults['set-exit-if-changed'] as bool ||
-        argResults['check'] as bool ||
-        argResults['dry-run'] as bool) {
+    if (argResults['check'] as bool) {
+      newArgs.add('--check');
+    } else if (argResults['dry-run'] as bool) {
+      newArgs.add('--dry-run');
+    } else if (argResults['set-exit-if-changed'] as bool) {
       newArgs.add('--set-exit-if-changed');
     }
     if (projectName.isNotEmpty) {
