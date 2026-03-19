@@ -14,11 +14,13 @@ assignees: ''
 
 So that as a user I can [clear and concise benefit].
 
-## Closing Crieria
+## Closing Criteria
 
 Checklist for closing the issue:
 
-- [ ] All tests pass
+- [ ] No errors from `make prep`
+- [ ] All tests pass `make qtest`
+- [ ] [Issue specific requirements.]
 
 ## Alternatives
 
