@@ -1,8 +1,6 @@
-// Test file for comment with empty line scenario
+/// Stub widget for demonstrating import ordering.
 ///
-// Time-stamp: <Thursday 2025-01-30 08:36:00 +1100 Graham Williams>
-///
-/// Copyright (C) 2025, Software Innovation Institute, ANU
+/// Copyright (C) 2026, Software Innovation Institute, ANU
 ///
 /// Licensed under the GNU General Public License, Version 3 (the "License");
 ///
@@ -15,23 +13,23 @@
 //
 // This program is distributed in the hope that it will be useful, but WITHOUT
 // ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along with
-// this program.  If not, see <https://www.gnu.org/licenses/>.
+// this program. If not, see <https://www.gnu.org/licenses/>.
 ///
-/// Authors: Ashley Tang
+/// Authors: Tony Chen
 
 library;
 
+import 'package:flutter/material.dart';
 
-import 'package:markdown_widget_builder/markdown_widget_builder.dart';
+class SessionWidget extends StatelessWidget {
+  const SessionWidget({super.key});
 
-import 'package:markdown_widget_builder/src/utils/file_ops.dart';
-
-import 'package:window_manager/window_manager.dart';
-
-// void main() {
-//   print('Testing comment with empty line scenario');
-// }
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}

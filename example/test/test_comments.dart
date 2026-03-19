@@ -33,7 +33,7 @@ import 'package:example/models/user.dart';
 
 import 'package:example/widgets/session_widget.dart';
 
-import 'package:riodm/riodm.dart';
+import 'package:solidui/solidui.dart';
 
 import 'package:solidpod/solidpod.dart'
     // These are the exact functions we need

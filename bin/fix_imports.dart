@@ -277,7 +277,11 @@ bool _processFile(String filePath,
       if (line.startsWith('import ')) {
         // Found an import statement, extract the block.
 
-        final block = _extractImportBlock(lines, i);
+        final block = _extractImportBlock(
+          lines,
+          i,
+          lookPastBlankLines: importBlocks.isNotEmpty,
+        );
         importBlocks.add(block);
         importBlockIndices.add(block.startIndex);
         i = block.endIndex + 1;
@@ -702,8 +706,17 @@ ImportCategory _getImportCategory(String importLine, String projectName) {
 }
 
 // Extract an import block starting from the given index.
+//
+// When [lookPastBlankLines] is true, the backward scan for associated comments
+// will skip over blank lines to find comments that belong to this import.
+// This should only be enabled for non-first imports to avoid capturing
+// file-level header comments that precede the import section.
 
-ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
+ImportBlock _extractImportBlock(
+  List<String> lines,
+  int startIndex, {
+  bool lookPastBlankLines = false,
+}) {
   final blockLines = <String>[];
   int currentIndex = startIndex;
   String importStatement = '';
@@ -735,7 +748,9 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
   }
 
   // Now look for associated comments that should move with this import.
-  // Comments that immediately precede the import (no empty line) should move with it.
+  // Comments that immediately precede the import (no empty line) should move
+  // with it. When lookPastBlankLines is set, also capture comments separated
+  // from this import by blank lines (within the import section).
 
   int commentStartIndex = startIndex - 1;
   while (commentStartIndex >= 0) {
@@ -743,8 +758,24 @@ ImportBlock _extractImportBlock(List<String> lines, int startIndex) {
     final trimmedLine = line.trim();
 
     if (trimmedLine.isEmpty) {
-      // Found empty line, stop looking for comments.
+      if (lookPastBlankLines) {
+        // Peek past blank lines to see if there is a comment above.
 
+        int peekIndex = commentStartIndex - 1;
+        while (peekIndex >= 0 && lines[peekIndex].trim().isEmpty) {
+          peekIndex--;
+        }
+        if (peekIndex >= 0 &&
+            (lines[peekIndex].trim().startsWith('//') ||
+                lines[peekIndex].trim().startsWith('/*'))) {
+          // There is a comment above the blank line(s); preserve the
+          // blank line so the original spacing around the comment is kept.
+
+          blockLines.insert(0, line);
+          commentStartIndex--;
+          continue;
+        }
+      }
       break;
     } else if (trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
       // Found a comment, add it to the beginning of the block.
